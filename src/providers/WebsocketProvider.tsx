@@ -18,8 +18,6 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const store = useChatStore.getState();
-
     agentSocket.connect(token, {
       onConnect: () => useChatStore.getState().setWsConnected(true),
       onDisconnect: () => useChatStore.getState().setWsConnected(false),
@@ -30,6 +28,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         const s = useChatStore.getState();
         s.setActiveTask(payload.taskId, "RUNNING");
         s.resetProgress();
+        s.setPlannedActions([]);
         s.pushProgress("Planning...");
         s.setPhase("thinking");
         void queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -80,6 +79,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         s.setActiveTask(payload.taskId, s.activeTaskStatus);
         s.appendLocalAssistantMessage(payload.content, payload.taskId);
         if (payload.actions?.length) {
+          s.setPlannedActions(payload.actions);
           s.pushProgress(
             `Queued ${payload.actions.length} action${payload.actions.length > 1 ? "s" : ""}...`,
           );
@@ -88,6 +88,11 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       },
       onActionResult: (payload) => {
         const s = useChatStore.getState();
+        s.markActionResult({
+          actionId: payload.actionId,
+          success: payload.success,
+          error: payload.error,
+        });
         if (payload.success) {
           s.pushProgress("Verifying...");
           s.setPhase("verifying");
@@ -97,7 +102,8 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         }
       },
       onScreenResult: (payload) => {
-        store.setScreenshot({
+        const s = useChatStore.getState();
+        s.setScreenshot({
           requestId: payload.requestId,
           taskId: payload.taskId,
           width: payload.width,
@@ -107,10 +113,36 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           receivedAt: new Date().toISOString(),
         });
         if (payload.taskId) {
-          useChatStore.getState().pushProgress("Screenshot received");
+          s.pushProgress("Screenshot received");
+        } else {
+          s.appendLocalSystemMessage(
+            `Screenshot received (${payload.width}×${payload.height})`,
+          );
+          if (s.phase === "waiting_for_screenshot") s.setPhase("idle");
+        }
+      },
+      onProcessesResult: (payload) => {
+        const s = useChatStore.getState();
+        s.setProcesses(payload.processes ?? []);
+        if (payload.error) s.setLastError(payload.error);
+        else s.appendLocalSystemMessage(`Loaded ${payload.processes.length} processes`);
+      },
+      onAppsResult: (payload) => {
+        const s = useChatStore.getState();
+        s.setApps(payload.apps ?? []);
+        if (payload.error) s.setLastError(payload.error);
+        else s.appendLocalSystemMessage(`Loaded ${payload.apps.length} running apps`);
+      },
+      onNotifyResult: (payload) => {
+        const s = useChatStore.getState();
+        if (payload.success) {
+          s.appendLocalSystemMessage("Notification delivered to desktop agent");
+        } else {
+          s.setLastError(payload.error || "Notification failed");
         }
       },
       onError: (payload) => {
+        if (!payload?.message) return;
         useChatStore.getState().setLastError(payload.message);
       },
     });

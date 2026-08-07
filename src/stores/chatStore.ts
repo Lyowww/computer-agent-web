@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import type {
+  AppInfo,
   ChatMessage,
   PendingUserConfirmation,
+  PlannedAction,
+  ProcessInfo,
   ScreenFrame,
   TaskProgressStep,
   TaskStatus,
@@ -16,13 +19,18 @@ interface ChatState {
   phase: UiPhase;
   messages: ChatMessage[];
   progressSteps: TaskProgressStep[];
+  plannedActions: PlannedAction[];
+  processes: ProcessInfo[];
+  apps: AppInfo[];
   latestScreenshot: ScreenFrame | null;
   screenshots: ScreenFrame[];
   pendingConfirmation: PendingUserConfirmation | null;
   lastError: string | null;
   wsConnected: boolean;
+  aiEnabled: boolean;
   setSelectedDeviceId: (id: string | null) => void;
   setWsConnected: (connected: boolean) => void;
+  setAiEnabled: (enabled: boolean) => void;
   setActiveTask: (taskId: string | null, status?: TaskStatus | null) => void;
   setPhase: (phase: UiPhase) => void;
   setTaskStatus: (status: TaskStatus | string, message?: string) => void;
@@ -33,11 +41,20 @@ interface ChatState {
   completeActiveProgress: () => void;
   failActiveProgress: () => void;
   resetProgress: () => void;
+  setPlannedActions: (actions: PlannedAction[]) => void;
+  markActionResult: (payload: {
+    actionId: string;
+    success: boolean;
+    error?: string;
+  }) => void;
+  setProcesses: (processes: ProcessInfo[]) => void;
+  setApps: (apps: AppInfo[]) => void;
   setScreenshot: (frame: ScreenFrame) => void;
   setPendingConfirmation: (value: PendingUserConfirmation | null) => void;
   setLastError: (error: string | null) => void;
   appendLocalUserMessage: (content: string, taskId?: string | null) => ChatMessage;
   appendLocalAssistantMessage: (content: string, taskId?: string | null) => ChatMessage;
+  appendLocalSystemMessage: (content: string) => ChatMessage;
 }
 
 function stepFromStatus(status: TaskStatus | string): string {
@@ -69,14 +86,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
   phase: "idle",
   messages: [],
   progressSteps: [],
+  plannedActions: [],
+  processes: [],
+  apps: [],
   latestScreenshot: null,
   screenshots: [],
   pendingConfirmation: null,
   lastError: null,
   wsConnected: false,
+  aiEnabled: true,
 
   setSelectedDeviceId: (id) => set({ selectedDeviceId: id }),
   setWsConnected: (connected) => set({ wsConnected: connected }),
+  setAiEnabled: (enabled) => set({ aiEnabled: enabled }),
 
   setActiveTask: (taskId, status = null) =>
     set({
@@ -91,7 +113,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const typed = status as TaskStatus;
     const phase = taskStatusToPhase(typed);
     get().completeActiveProgress();
-    get().pushProgress(stepFromStatus(typed), phase === "failed" ? "error" : phase === "completed" ? "done" : "active");
+    get().pushProgress(
+      stepFromStatus(typed),
+      phase === "failed" ? "error" : phase === "completed" ? "done" : "active",
+    );
 
     if (typed === "WAITING_FOR_USER") {
       set({
@@ -131,7 +156,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { messages: [...incoming, ...state.messages] };
     }),
 
-  clearMessages: () => set({ messages: [], progressSteps: [] }),
+  clearMessages: () => set({ messages: [], progressSteps: [], plannedActions: [] }),
 
   pushProgress: (label, status = "active") =>
     set((state) => {
@@ -167,6 +192,25 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   resetProgress: () => set({ progressSteps: [] }),
 
+  setPlannedActions: (actions) => set({ plannedActions: actions }),
+
+  markActionResult: ({ actionId, success, error }) =>
+    set((state) => ({
+      plannedActions: state.plannedActions.map((action, index) => {
+        if (action.actionId === actionId) {
+          return { ...action, success, error };
+        }
+        // Fallback: mark first unmarked action if IDs are not present on plan
+        if (!action.actionId && action.success === undefined && index === 0) {
+          return { ...action, actionId, success, error };
+        }
+        return action;
+      }),
+    })),
+
+  setProcesses: (processes) => set({ processes }),
+  setApps: (apps) => set({ apps }),
+
   setScreenshot: (frame) =>
     set((state) => ({
       latestScreenshot: frame,
@@ -193,6 +237,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
       id: createRequestId("msg"),
       taskId,
       role: "ASSISTANT",
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    get().addMessage(message);
+    return message;
+  },
+
+  appendLocalSystemMessage: (content) => {
+    const message: ChatMessage = {
+      id: createRequestId("msg"),
+      taskId: null,
+      role: "SYSTEM",
       content,
       createdAt: new Date().toISOString(),
     };

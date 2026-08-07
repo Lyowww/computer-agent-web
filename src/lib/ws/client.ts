@@ -2,8 +2,11 @@ import { io, type Socket } from "socket.io-client";
 import type {
   ActionResultPayload,
   AiResponsePayload,
+  AppsResultPayload,
   DeviceStatusPayload,
   ErrorPayload,
+  NotifyResultPayload,
+  ProcessesResultPayload,
   ScreenResultPayload,
   TaskStartPayload,
   TaskTerminalPayload,
@@ -21,6 +24,9 @@ export type WsHandlers = {
   onTaskFailed?: (payload: TaskTerminalPayload) => void;
   onAiResponse?: (payload: AiResponsePayload) => void;
   onActionResult?: (payload: ActionResultPayload) => void;
+  onProcessesResult?: (payload: ProcessesResultPayload) => void;
+  onAppsResult?: (payload: AppsResultPayload) => void;
+  onNotifyResult?: (payload: NotifyResultPayload) => void;
   onError?: (payload: ErrorPayload) => void;
 };
 
@@ -51,31 +57,23 @@ export class AgentSocket {
     socket.on("connect", () => handlers.onConnect?.());
     socket.on("disconnect", (reason) => handlers.onDisconnect?.(String(reason)));
 
-    socket.on("DEVICE_STATUS", (payload: DeviceStatusPayload) =>
-      handlers.onDeviceStatus?.(payload),
-    );
-    socket.on("SCREEN_RESULT", (payload: ScreenResultPayload) =>
-      handlers.onScreenResult?.(payload),
-    );
-    socket.on("TASK_START", (payload: TaskStartPayload) =>
-      handlers.onTaskStart?.(payload),
-    );
-    socket.on("TASK_UPDATE", (payload: TaskUpdatePayload) =>
-      handlers.onTaskUpdate?.(payload),
-    );
-    socket.on("TASK_COMPLETED", (payload: TaskTerminalPayload) =>
-      handlers.onTaskCompleted?.(payload),
-    );
-    socket.on("TASK_FAILED", (payload: TaskTerminalPayload) =>
-      handlers.onTaskFailed?.(payload),
-    );
-    socket.on("AI_RESPONSE", (payload: AiResponsePayload) =>
-      handlers.onAiResponse?.(payload),
-    );
-    socket.on("ACTION_RESULT", (payload: ActionResultPayload) =>
-      handlers.onActionResult?.(payload),
-    );
-    socket.on("ERROR", (payload: ErrorPayload) => handlers.onError?.(payload));
+    const bind = <T,>(event: string, handler?: (payload: T) => void) => {
+      if (!handler) return;
+      socket.on(event, handler);
+    };
+
+    bind("DEVICE_STATUS", handlers.onDeviceStatus);
+    bind("SCREEN_RESULT", handlers.onScreenResult);
+    bind("TASK_START", handlers.onTaskStart);
+    bind("TASK_UPDATE", handlers.onTaskUpdate);
+    bind("TASK_COMPLETED", handlers.onTaskCompleted);
+    bind("TASK_FAILED", handlers.onTaskFailed);
+    bind("AI_RESPONSE", handlers.onAiResponse);
+    bind("ACTION_RESULT", handlers.onActionResult);
+    bind("PROCESSES_RESULT", handlers.onProcessesResult);
+    bind("APPS_RESULT", handlers.onAppsResult);
+    bind("NOTIFY_RESULT", handlers.onNotifyResult);
+    bind("ERROR", handlers.onError);
 
     socket.on("message", (envelope: { event?: string; payload?: unknown }) => {
       if (!envelope?.event) return;
@@ -104,6 +102,15 @@ export class AgentSocket {
           break;
         case "ACTION_RESULT":
           handlers.onActionResult?.(payload as ActionResultPayload);
+          break;
+        case "PROCESSES_RESULT":
+          handlers.onProcessesResult?.(payload as ProcessesResultPayload);
+          break;
+        case "APPS_RESULT":
+          handlers.onAppsResult?.(payload as AppsResultPayload);
+          break;
+        case "NOTIFY_RESULT":
+          handlers.onNotifyResult?.(payload as NotifyResultPayload);
           break;
         case "ERROR":
           handlers.onError?.(payload as ErrorPayload);
@@ -134,6 +141,7 @@ export class AgentSocket {
     taskId?: string;
     content: string;
     deviceId?: string;
+    useAi?: boolean;
   }): Promise<unknown> {
     return this.emitAck("USER_MESSAGE", payload);
   }
@@ -142,8 +150,34 @@ export class AgentSocket {
     requestId: string;
     quality?: number;
     taskId?: string;
+    deviceId?: string;
   }): Promise<unknown> {
     return this.emitAck("CAPTURE_SCREEN", payload);
+  }
+
+  emitNotify(payload: {
+    requestId: string;
+    body: string;
+    title?: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAck("NOTIFY", payload);
+  }
+
+  emitListProcesses(payload: {
+    requestId: string;
+    deviceId?: string;
+    limit?: number;
+  }): Promise<unknown> {
+    return this.emitAck("LIST_PROCESSES", payload);
+  }
+
+  emitListApps(payload: {
+    requestId: string;
+    deviceId?: string;
+    limit?: number;
+  }): Promise<unknown> {
+    return this.emitAck("LIST_APPS", payload);
   }
 
   private emitAck(event: string, payload: unknown): Promise<unknown> {

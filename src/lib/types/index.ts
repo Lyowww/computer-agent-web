@@ -142,7 +142,13 @@ export type WsEventName =
   | "PONG"
   | "USER_MESSAGE"
   | "CAPTURE_SCREEN"
-  | "PING";
+  | "PING"
+  | "NOTIFY"
+  | "NOTIFY_RESULT"
+  | "LIST_PROCESSES"
+  | "PROCESSES_RESULT"
+  | "LIST_APPS"
+  | "APPS_RESULT";
 
 export interface DeviceStatusPayload {
   deviceId: string;
@@ -151,6 +157,47 @@ export interface DeviceStatusPayload {
   name?: string;
   os?: string;
 }
+
+export interface PlannedAction {
+  type: string;
+  params: Record<string, unknown>;
+  reason?: string;
+  actionId?: string;
+  success?: boolean;
+  error?: string;
+}
+
+export interface ProcessInfo {
+  pid: number;
+  name: string;
+  cpu?: number;
+}
+
+export interface AppInfo {
+  name: string;
+  path?: string;
+  running: boolean;
+}
+
+export interface ProcessesResultPayload {
+  requestId: string;
+  processes: ProcessInfo[];
+  error?: string;
+}
+
+export interface AppsResultPayload {
+  requestId: string;
+  apps: AppInfo[];
+  error?: string;
+}
+
+export interface NotifyResultPayload {
+  requestId: string;
+  success: boolean;
+  delivered?: boolean;
+  error?: string;
+}
+
 
 export interface TaskUpdatePayload {
   taskId: string;
@@ -174,11 +221,7 @@ export interface TaskTerminalPayload {
 export interface AiResponsePayload {
   taskId: string;
   content: string;
-  actions?: Array<{
-    type: string;
-    params: Record<string, unknown>;
-    reason?: string;
-  }>;
+  actions?: PlannedAction[];
 }
 
 export interface ScreenResultPayload {

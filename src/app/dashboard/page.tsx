@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   const onlineCount = devicesWithTasks.filter((d) => d.connectionStatus === "ONLINE").length;
 
-  async function takeScreenshot() {
+  async function takeScreenshot(deviceId?: string) {
     if (!wsConnected) {
       setLastError("Live connection is down.");
       return;
@@ -48,6 +48,7 @@ export default function DashboardPage() {
       await agentSocket.emitCaptureScreen({
         requestId: createRequestId("screen"),
         quality: 80,
+        deviceId,
       });
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Screenshot failed");
@@ -103,7 +104,7 @@ export default function DashboardPage() {
                 key={device.id}
                 device={device}
                 screenshotBusy={screenshotBusy}
-                onScreenshot={() => void takeScreenshot()}
+                onScreenshot={() => void takeScreenshot(device.id)}
               />
             ))}
           </div>

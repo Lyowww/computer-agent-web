@@ -13,6 +13,8 @@ import { useChatStore } from "@/stores/chatStore";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { TaskProgress } from "@/components/chat/TaskProgress";
+import { ActionList } from "@/components/chat/ActionList";
+import { DeviceStatePanel } from "@/components/chat/DeviceStatePanel";
 import { ScreenshotViewer } from "@/components/screenshot/ScreenshotViewer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -26,6 +28,9 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     setSelectedDeviceId,
     messages,
     progressSteps,
+    plannedActions,
+    processes,
+    apps,
     phase,
     activeTaskId,
     activeTaskStatus,
@@ -33,8 +38,11 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     pendingConfirmation,
     lastError,
     wsConnected,
+    aiEnabled,
+    setAiEnabled,
     setLastError,
     appendLocalUserMessage,
+    appendLocalSystemMessage,
     setActiveTask,
     resetProgress,
     pushProgress,
@@ -45,6 +53,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
+  const [inspectBusy, setInspectBusy] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
   useEffect(() => {
@@ -79,7 +88,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         const blob = await synthesizeSpeech(text);
         await playAudioBlob(blob);
       } catch {
-        // TTS is optional; keep chat usable if backend voice is unavailable.
+        // optional
       }
     },
     [ttsEnabled],
@@ -96,18 +105,35 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     }
 
     appendLocalUserMessage(content, activeTaskId);
+    setLastError(null);
+
+    if (!aiEnabled) {
+      appendLocalSystemMessage("Sending notification to desktop (AI off)…");
+      try {
+        await agentSocket.emitUserMessage({
+          requestId: createRequestId(),
+          content,
+          deviceId: selectedDeviceId,
+          useAi: false,
+        });
+      } catch (err) {
+        setLastError(err instanceof Error ? err.message : "Failed to notify device");
+      }
+      return;
+    }
+
     resetProgress();
     pushProgress("Planning...");
     setPhase("thinking");
-    setLastError(null);
 
     try {
       const response = (await agentSocket.emitUserMessage({
         requestId: createRequestId(),
         content,
         deviceId: selectedDeviceId,
+        useAi: true,
         taskId: activeTaskId && activeTaskStatus === "WAITING_FOR_USER" ? activeTaskId : undefined,
-      })) as { taskId?: string; resumedTaskId?: string } | undefined;
+      })) as { taskId?: string; resumedTaskId?: string; mode?: string } | undefined;
 
       const taskId = response?.resumedTaskId || response?.taskId;
       if (taskId) setActiveTask(taskId, "RUNNING");
@@ -118,8 +144,8 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
   }
 
   async function handleScreenshot() {
-    if (!wsConnected) {
-      setLastError("Live connection is down.");
+    if (!wsConnected || !selectedDeviceId) {
+      setLastError("Select an online device first.");
       return;
     }
     setScreenshotBusy(true);
@@ -128,14 +154,52 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
       await agentSocket.emitCaptureScreen({
         requestId: createRequestId("screen"),
         quality: 80,
-        taskId: activeTaskId || undefined,
+        deviceId: selectedDeviceId,
+        // Only attach taskId when AI task is active — otherwise pure view capture
+        taskId: aiEnabled && activeTaskId ? activeTaskId : undefined,
       });
-      pushProgress("Taking screenshot...");
-      setPhase("waiting_for_screenshot");
+      if (aiEnabled && activeTaskId) {
+        pushProgress("Taking screenshot...");
+        setPhase("waiting_for_screenshot");
+      } else {
+        appendLocalSystemMessage("Screenshot requested (no AI)…");
+      }
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Screenshot request failed");
     } finally {
       setScreenshotBusy(false);
+    }
+  }
+
+  async function handleRefreshApps() {
+    if (!selectedDeviceId || !wsConnected) return;
+    setInspectBusy(true);
+    try {
+      await agentSocket.emitListApps({
+        requestId: createRequestId("apps"),
+        deviceId: selectedDeviceId,
+        limit: 40,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to list apps");
+    } finally {
+      setInspectBusy(false);
+    }
+  }
+
+  async function handleRefreshProcesses() {
+    if (!selectedDeviceId || !wsConnected) return;
+    setInspectBusy(true);
+    try {
+      await agentSocket.emitListProcesses({
+        requestId: createRequestId("procs"),
+        deviceId: selectedDeviceId,
+        limit: 40,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to list processes");
+    } finally {
+      setInspectBusy(false);
     }
   }
 
@@ -202,7 +266,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
               Chat
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Command your computer with text or voice
+              Notify, screenshot, inspect apps — or turn on AI actions
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -254,15 +318,22 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         <ChatComposer
           disabled={!selectedDeviceId || selectedDevice?.connectionStatus === "REVOKED"}
           canCancel={canCancel}
+          aiEnabled={aiEnabled}
+          onAiEnabledChange={setAiEnabled}
           onSend={handleSend}
           onCancel={() => void handleCancel()}
           onScreenshot={() => void handleScreenshot()}
+          onRefreshApps={() => void handleRefreshApps()}
+          onRefreshProcesses={() => void handleRefreshProcesses()}
           screenshotBusy={screenshotBusy}
+          inspectBusy={inspectBusy}
         />
       </section>
 
       <aside className="space-y-4">
-        <TaskProgress steps={progressSteps} phase={phase} />
+        {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
+        {aiEnabled ? <ActionList actions={plannedActions} /> : null}
+        <DeviceStatePanel apps={apps} processes={processes} />
         <ScreenshotViewer
           frame={
             latestScreenshot
