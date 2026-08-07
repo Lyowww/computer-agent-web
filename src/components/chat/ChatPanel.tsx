@@ -110,12 +110,13 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     if (!aiEnabled) {
       appendLocalSystemMessage("Sending notification to desktop (AI off)…");
       try {
-        await agentSocket.emitUserMessage({
-          requestId: createRequestId(),
-          content,
+        await agentSocket.emitNotify({
+          requestId: createRequestId("notify"),
+          body: content,
+          title: "Message from dashboard",
           deviceId: selectedDeviceId,
-          useAi: false,
         });
+        appendLocalSystemMessage("Notification delivered to desktop.");
       } catch (err) {
         setLastError(err instanceof Error ? err.message : "Failed to notify device");
       }

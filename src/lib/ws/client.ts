@@ -267,17 +267,29 @@ export class AgentSocket {
       return Promise.reject(new Error("WebSocket is not connected"));
     }
 
+    const requestId =
+      payload && typeof payload === "object" && "requestId" in payload
+        ? String((payload as { requestId?: string }).requestId ?? "")
+        : "";
+
     return new Promise((resolve, reject) => {
       let settled = false;
       const finish = (err: Error | null, response?: unknown) => {
         if (settled) return;
         settled = true;
+        cleanup();
         if (err) reject(err);
         else resolve(response ?? { ok: true });
       };
 
-      const onAck = (data: { event?: string; ok?: boolean; message?: string }) => {
+      const onAck = (data: {
+        event?: string;
+        requestId?: string;
+        ok?: boolean;
+        message?: string;
+      }) => {
         if (data?.event && data.event !== event) return;
+        if (requestId && data?.requestId && data.requestId !== requestId) return;
         if (data?.ok === false) {
           finish(new Error(data.message || `${event} failed`));
           return;
@@ -285,22 +297,31 @@ export class AgentSocket {
         finish(null, data);
       };
 
+      const onError = (data: { requestId?: string; message?: string; code?: string }) => {
+        if (requestId && data?.requestId && data.requestId !== requestId) return;
+        if (requestId && data?.requestId === requestId) {
+          finish(new Error(data.message || data.code || `${event} failed`));
+        }
+      };
+
       const timer = setTimeout(() => {
-        socket.off("REQUEST_ACK", onAck);
-        // Soft-fallback for chat/AI kickoff only — result streams arrive as other events.
-        finish(null, { ok: true, assumed: true });
+        finish(
+          new Error(
+            `${event} was not acknowledged by the backend within 10s. Redeploy backend or check Render logs.`,
+          ),
+        );
       }, 10000);
 
-      socket.on("REQUEST_ACK", onAck);
-      socket.timeout(8000).emit(event, payload, (err: Error | null, response: unknown) => {
-        socket.off("REQUEST_ACK", onAck);
+      const cleanup = () => {
         clearTimeout(timer);
-        if (err) {
-          // Keep waiting briefly for REQUEST_ACK; timer handles soft fallback.
-          return;
-        }
-        finish(null, response);
-      });
+        socket.off("REQUEST_ACK", onAck);
+        socket.off("ERROR", onError);
+      };
+
+      socket.on("REQUEST_ACK", onAck);
+      socket.on("ERROR", onError);
+      // Never pass a Socket.IO ack callback — Nest often fails to run handlers when one is present.
+      socket.emit(event, payload);
     });
   }
 }
