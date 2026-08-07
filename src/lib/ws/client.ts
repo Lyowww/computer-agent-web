@@ -31,10 +31,25 @@ export type WsHandlers = {
 };
 
 function wsUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_WS_URL?.replace(/\/$/, "") ||
-    "http://localhost:3000/ws"
-  );
+  const raw =
+    process.env.NEXT_PUBLIC_WS_URL?.trim().replace(/\/$/, "") ||
+    "http://localhost:3000/ws";
+
+  try {
+    const withProtocol = /^(ws|wss|http|https):\/\//i.test(raw)
+      ? raw
+      : `https://${raw}`;
+    const url = new URL(withProtocol);
+    if (url.protocol === "ws:") url.protocol = "http:";
+    if (url.protocol === "wss:") url.protocol = "https:";
+    // Nest gateway is mounted at /ws — a bare host connects to the wrong namespace.
+    if (!url.pathname || url.pathname === "/") {
+      url.pathname = "/ws";
+    }
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return "http://localhost:3000/ws";
+  }
 }
 
 export class AgentSocket {
