@@ -13,10 +13,7 @@ export function ChatComposer({
   onSend,
   onCancel,
   onScreenshot,
-  onRefreshApps,
-  onRefreshProcesses,
   screenshotBusy,
-  inspectBusy,
 }: {
   disabled?: boolean;
   canCancel?: boolean;
@@ -25,10 +22,7 @@ export function ChatComposer({
   onSend: (text: string) => Promise<void> | void;
   onCancel?: () => void;
   onScreenshot?: () => void;
-  onRefreshApps?: () => void;
-  onRefreshProcesses?: () => void;
   screenshotBusy?: boolean;
-  inspectBusy?: boolean;
 }) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
@@ -49,7 +43,7 @@ export function ChatComposer({
   return (
     <form
       onSubmit={(e) => void submit(e)}
-      className="border-t border-[var(--border)] bg-[var(--panel)]/90 p-3 backdrop-blur"
+      className="shrink-0 border-t border-[var(--border)] bg-[var(--panel)]/90 p-3 backdrop-blur"
     >
       <div className="flex flex-wrap items-center gap-2 pb-2">
         <label className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-medium">
@@ -74,24 +68,6 @@ export function ChatComposer({
         >
           <Camera className="h-4 w-4" />
           Screenshot
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={disabled || inspectBusy}
-          onClick={onRefreshApps}
-        >
-          Apps
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={disabled || inspectBusy}
-          onClick={onRefreshProcesses}
-        >
-          Processes
         </Button>
         {canCancel ? (
           <Button type="button" size="sm" variant="danger" onClick={onCancel}>

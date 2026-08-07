@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { AppWindow, Cpu } from "lucide-react";
 import { listDevices } from "@/lib/api/devices";
 import { cancelTask } from "@/lib/api/tasks";
 import { getChatHistory } from "@/lib/api/chat";
@@ -14,7 +16,6 @@ import { MessageList } from "@/components/chat/MessageList";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { TaskProgress } from "@/components/chat/TaskProgress";
 import { ActionList } from "@/components/chat/ActionList";
-import { DeviceStatePanel } from "@/components/chat/DeviceStatePanel";
 import { ScreenshotViewer } from "@/components/screenshot/ScreenshotViewer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
@@ -29,8 +30,6 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     messages,
     progressSteps,
     plannedActions,
-    processes,
-    apps,
     phase,
     activeTaskId,
     activeTaskStatus,
@@ -53,7 +52,6 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
-  const [inspectBusy, setInspectBusy] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
   useEffect(() => {
@@ -108,7 +106,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     setLastError(null);
 
     if (!aiEnabled) {
-      appendLocalSystemMessage("Sending notification to desktop (AI off)…");
+      appendLocalSystemMessage("Sending notification to desktop…");
       try {
         await agentSocket.emitNotify({
           requestId: createRequestId("notify"),
@@ -156,51 +154,16 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         requestId: createRequestId("screen"),
         quality: 80,
         deviceId: selectedDeviceId,
-        // Only attach taskId when AI task is active — otherwise pure view capture
         taskId: aiEnabled && activeTaskId ? activeTaskId : undefined,
       });
       if (aiEnabled && activeTaskId) {
         pushProgress("Taking screenshot...");
         setPhase("waiting_for_screenshot");
-      } else {
-        appendLocalSystemMessage("Screenshot requested (no AI)…");
       }
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Screenshot request failed");
     } finally {
       setScreenshotBusy(false);
-    }
-  }
-
-  async function handleRefreshApps() {
-    if (!selectedDeviceId || !wsConnected) return;
-    setInspectBusy(true);
-    try {
-      await agentSocket.emitListApps({
-        requestId: createRequestId("apps"),
-        deviceId: selectedDeviceId,
-        limit: 40,
-      });
-    } catch (err) {
-      setLastError(err instanceof Error ? err.message : "Failed to list apps");
-    } finally {
-      setInspectBusy(false);
-    }
-  }
-
-  async function handleRefreshProcesses() {
-    if (!selectedDeviceId || !wsConnected) return;
-    setInspectBusy(true);
-    try {
-      await agentSocket.emitListProcesses({
-        requestId: createRequestId("procs"),
-        deviceId: selectedDeviceId,
-        limit: 40,
-      });
-    } catch (err) {
-      setLastError(err instanceof Error ? err.message : "Failed to list processes");
-    } finally {
-      setInspectBusy(false);
     }
   }
 
@@ -259,19 +222,33 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     activeTaskStatus !== "CANCELLED";
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
-      <section className="flex min-h-[70vh] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 shadow-sm backdrop-blur">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
+    <div className="grid h-[calc(100dvh-7.5rem)] gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)] lg:h-[calc(100dvh-5.5rem)]">
+      <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 shadow-sm backdrop-blur">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
           <div>
             <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
               Chat
             </h1>
             <p className="text-sm text-[var(--muted)]">
-              Notify, screenshot, inspect apps — or turn on AI actions
+              Notify or run AI actions — manage apps on the Apps page
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PhaseBadge phase={phase} />
+            <Link
+              href="/apps"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
+            >
+              <AppWindow className="h-3.5 w-3.5" />
+              Apps
+            </Link>
+            <Link
+              href="/processes"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
+            >
+              <Cpu className="h-3.5 w-3.5" />
+              Processes
+            </Link>
             <label className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs">
               <input
                 type="checkbox"
@@ -283,7 +260,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           </div>
         </header>
 
-        <div className="border-b border-[var(--border)] px-4 py-3">
+        <div className="shrink-0 border-b border-[var(--border)] px-4 py-3">
           <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
@@ -307,12 +284,12 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         </div>
 
         {lastError ? (
-          <div className="px-4 pt-3">
+          <div className="shrink-0 px-4 pt-3">
             <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
           </div>
         ) : null}
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <MessageList messages={messages} />
         </div>
 
@@ -324,17 +301,13 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           onSend={handleSend}
           onCancel={() => void handleCancel()}
           onScreenshot={() => void handleScreenshot()}
-          onRefreshApps={() => void handleRefreshApps()}
-          onRefreshProcesses={() => void handleRefreshProcesses()}
           screenshotBusy={screenshotBusy}
-          inspectBusy={inspectBusy}
         />
       </section>
 
-      <aside className="space-y-4">
+      <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto">
         {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
         {aiEnabled ? <ActionList actions={plannedActions} /> : null}
-        <DeviceStatePanel apps={apps} processes={processes} />
         <ScreenshotViewer
           frame={
             latestScreenshot

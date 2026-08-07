@@ -9,6 +9,8 @@ import {
   Settings,
   LogOut,
   Radio,
+  AppWindow,
+  Cpu,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuthStore } from "@/stores/authStore";
@@ -19,6 +21,8 @@ const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/devices", label: "Devices", icon: MonitorSmartphone },
   { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/apps", label: "Apps", icon: AppWindow },
+  { href: "/processes", label: "Processes", icon: Cpu },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -123,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--panel)]/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-2 py-2">
+          <div className="mx-auto grid max-w-lg grid-cols-6 gap-1 px-1 py-2">
             {nav.map((item) => {
               const Icon = item.icon;
               const active = pathname.startsWith(item.href);

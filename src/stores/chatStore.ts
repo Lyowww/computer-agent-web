@@ -146,13 +146,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
   addMessage: (message) =>
     set((state) => {
       if (state.messages.some((m) => m.id === message.id)) return state;
+      // Collapse near-duplicate bubbles (live WS + history / AI_RESPONSE + TASK_COMPLETED).
+      const recent = state.messages.slice(-12);
+      const dup = recent.some(
+        (m) =>
+          m.role === message.role &&
+          m.content.trim() === message.content.trim() &&
+          (m.taskId || null) === (message.taskId || null),
+      );
+      if (dup) return state;
       return { messages: [...state.messages, message] };
     }),
 
   prependHistory: (messages) =>
     set((state) => {
-      const existing = new Set(state.messages.map((m) => m.id));
-      const incoming = messages.filter((m) => !existing.has(m.id));
+      const existingIds = new Set(state.messages.map((m) => m.id));
+      const existingContent = new Set(
+        state.messages.map((m) => `${m.role}|${m.taskId ?? ""}|${m.content.trim()}`),
+      );
+      const incoming = messages.filter((m) => {
+        if (existingIds.has(m.id)) return false;
+        const key = `${m.role}|${m.taskId ?? ""}|${m.content.trim()}`;
+        if (existingContent.has(key)) return false;
+        existingContent.add(key);
+        return true;
+      });
       return { messages: [...incoming, ...state.messages] };
     }),
 

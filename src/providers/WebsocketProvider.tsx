@@ -58,8 +58,15 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         const s = useChatStore.getState();
         s.setActiveTask(payload.taskId, "COMPLETED");
         s.setTaskStatus("COMPLETED", payload.message);
+        // Prefer AI_RESPONSE for assistant text; only fall back if none was shown.
         if (payload.message) {
-          s.appendLocalAssistantMessage(payload.message, payload.taskId);
+          const already = s.messages.some(
+            (m) =>
+              m.role === "ASSISTANT" &&
+              m.taskId === payload.taskId &&
+              m.content.trim() === payload.message.trim(),
+          );
+          if (!already) s.appendLocalAssistantMessage(payload.message, payload.taskId);
         }
         void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       },
@@ -70,7 +77,13 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         s.setTaskStatus("FAILED", payload.message);
         s.setLastError(payload.message);
         if (payload.message) {
-          s.appendLocalAssistantMessage(payload.message, payload.taskId);
+          const already = s.messages.some(
+            (m) =>
+              m.role === "ASSISTANT" &&
+              m.taskId === payload.taskId &&
+              m.content.trim() === payload.message.trim(),
+          );
+          if (!already) s.appendLocalAssistantMessage(payload.message, payload.taskId);
         }
         void queryClient.invalidateQueries({ queryKey: ["tasks"] });
       },
@@ -114,31 +127,34 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         });
         if (payload.taskId) {
           s.pushProgress("Screenshot received");
-        } else {
-          s.appendLocalSystemMessage(
-            `Screenshot received (${payload.width}×${payload.height})`,
-          );
-          if (s.phase === "waiting_for_screenshot") s.setPhase("idle");
+        } else if (s.phase === "waiting_for_screenshot") {
+          s.setPhase("idle");
         }
+        // No chat spam for screenshots — viewer panel shows the frame.
       },
       onProcessesResult: (payload) => {
         const s = useChatStore.getState();
         s.setProcesses(payload.processes ?? []);
         if (payload.error) s.setLastError(payload.error);
-        else s.appendLocalSystemMessage(`Loaded ${payload.processes.length} processes`);
+        // Stay out of chat — Processes page owns this UI.
       },
       onAppsResult: (payload) => {
         const s = useChatStore.getState();
         s.setApps(payload.apps ?? []);
         if (payload.error) s.setLastError(payload.error);
-        else s.appendLocalSystemMessage(`Loaded ${payload.apps.length} running apps`);
+        // Stay out of chat — Apps page owns this UI.
       },
       onNotifyResult: (payload) => {
         const s = useChatStore.getState();
-        if (payload.success) {
-          s.appendLocalSystemMessage("Notification delivered to desktop agent");
-        } else {
+        if (!payload.success) {
           s.setLastError(payload.error || "Notification failed");
+        }
+        // Delivery confirmation is handled by ChatPanel after emitNotify resolves.
+      },
+      onAppActionResult: (payload) => {
+        const s = useChatStore.getState();
+        if (!payload.success) {
+          s.setLastError(payload.error || `Failed to ${payload.action} ${payload.app}`);
         }
       },
       onError: (payload) => {

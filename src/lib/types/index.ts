@@ -150,7 +150,10 @@ export type WsEventName =
   | "LIST_PROCESSES"
   | "PROCESSES_RESULT"
   | "LIST_APPS"
-  | "APPS_RESULT";
+  | "APPS_RESULT"
+  | "OPEN_APP"
+  | "CLOSE_APP"
+  | "APP_ACTION_RESULT";
 
 export interface DeviceStatusPayload {
   deviceId: string;
@@ -197,6 +200,14 @@ export interface NotifyResultPayload {
   requestId: string;
   success: boolean;
   delivered?: boolean;
+  error?: string;
+}
+
+export interface AppActionResultPayload {
+  requestId: string;
+  action: "open" | "close";
+  app: string;
+  success: boolean;
   error?: string;
 }
 

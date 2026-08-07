@@ -2,6 +2,7 @@ import { io, type Socket } from "socket.io-client";
 import type {
   ActionResultPayload,
   AiResponsePayload,
+  AppActionResultPayload,
   AppsResultPayload,
   DeviceStatusPayload,
   ErrorPayload,
@@ -27,6 +28,7 @@ export type WsHandlers = {
   onProcessesResult?: (payload: ProcessesResultPayload) => void;
   onAppsResult?: (payload: AppsResultPayload) => void;
   onNotifyResult?: (payload: NotifyResultPayload) => void;
+  onAppActionResult?: (payload: AppActionResultPayload) => void;
   onError?: (payload: ErrorPayload) => void;
 };
 
@@ -52,6 +54,23 @@ function wsUrl(): string {
   }
 }
 
+function eventDedupeKey(event: string, payload: unknown): string {
+  if (payload && typeof payload === "object") {
+    const obj = payload as Record<string, unknown>;
+    if (typeof obj.requestId === "string" && obj.requestId) {
+      return `${event}:${obj.requestId}`;
+    }
+    if (typeof obj.taskId === "string" && obj.taskId) {
+      return `${event}:${obj.taskId}:${String(obj.status ?? obj.content ?? "").slice(0, 80)}`;
+    }
+  }
+  try {
+    return `${event}:${JSON.stringify(payload).slice(0, 160)}`;
+  } catch {
+    return `${event}:${Date.now()}`;
+  }
+}
+
 export class AgentSocket {
   private socket: Socket | null = null;
 
@@ -72,27 +91,24 @@ export class AgentSocket {
     socket.on("connect", () => handlers.onConnect?.());
     socket.on("disconnect", (reason) => handlers.onDisconnect?.(String(reason)));
 
-    const bind = <T,>(event: string, handler?: (payload: T) => void) => {
-      if (!handler) return;
-      socket.on(event, handler);
+    // Backend emits both named events and {event,payload} envelopes — accept once.
+    const seen = new Map<string, number>();
+    const acceptOnce = (event: string, payload: unknown): boolean => {
+      const key = eventDedupeKey(event, payload);
+      const now = Date.now();
+      const prev = seen.get(key);
+      if (prev && now - prev < 2500) return false;
+      seen.set(key, now);
+      if (seen.size > 200) {
+        for (const [k, ts] of seen) {
+          if (now - ts > 5000) seen.delete(k);
+        }
+      }
+      return true;
     };
 
-    bind("DEVICE_STATUS", handlers.onDeviceStatus);
-    bind("SCREEN_RESULT", handlers.onScreenResult);
-    bind("TASK_START", handlers.onTaskStart);
-    bind("TASK_UPDATE", handlers.onTaskUpdate);
-    bind("TASK_COMPLETED", handlers.onTaskCompleted);
-    bind("TASK_FAILED", handlers.onTaskFailed);
-    bind("AI_RESPONSE", handlers.onAiResponse);
-    bind("ACTION_RESULT", handlers.onActionResult);
-    bind("PROCESSES_RESULT", handlers.onProcessesResult);
-    bind("APPS_RESULT", handlers.onAppsResult);
-    bind("NOTIFY_RESULT", handlers.onNotifyResult);
-    bind("ERROR", handlers.onError);
-
-    socket.on("message", (envelope: { event?: string; payload?: unknown }) => {
-      if (!envelope?.event) return;
-      const { event, payload } = envelope;
+    const dispatch = (event: string, payload: unknown) => {
+      if (!acceptOnce(event, payload)) return;
       switch (event) {
         case "DEVICE_STATUS":
           handlers.onDeviceStatus?.(payload as DeviceStatusPayload);
@@ -127,12 +143,40 @@ export class AgentSocket {
         case "NOTIFY_RESULT":
           handlers.onNotifyResult?.(payload as NotifyResultPayload);
           break;
+        case "APP_ACTION_RESULT":
+          handlers.onAppActionResult?.(payload as AppActionResultPayload);
+          break;
         case "ERROR":
           handlers.onError?.(payload as ErrorPayload);
           break;
         default:
           break;
       }
+    };
+
+    const named = [
+      "DEVICE_STATUS",
+      "SCREEN_RESULT",
+      "TASK_START",
+      "TASK_UPDATE",
+      "TASK_COMPLETED",
+      "TASK_FAILED",
+      "AI_RESPONSE",
+      "ACTION_RESULT",
+      "PROCESSES_RESULT",
+      "APPS_RESULT",
+      "NOTIFY_RESULT",
+      "APP_ACTION_RESULT",
+      "ERROR",
+    ] as const;
+
+    for (const event of named) {
+      socket.on(event, (payload: unknown) => dispatch(event, payload));
+    }
+
+    socket.on("message", (envelope: { event?: string; payload?: unknown }) => {
+      if (!envelope?.event) return;
+      dispatch(envelope.event, envelope.payload);
     });
 
     this.socket = socket;
@@ -193,6 +237,22 @@ export class AgentSocket {
     limit?: number;
   }): Promise<unknown> {
     return this.emitAndWaitForResult("LIST_APPS", payload, "APPS_RESULT", 15000);
+  }
+
+  emitOpenApp(payload: {
+    requestId: string;
+    app: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAndWaitForResult("OPEN_APP", payload, "APP_ACTION_RESULT", 15000);
+  }
+
+  emitCloseApp(payload: {
+    requestId: string;
+    app: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAndWaitForResult("CLOSE_APP", payload, "APP_ACTION_RESULT", 15000);
   }
 
   /**
@@ -314,18 +374,13 @@ export class AgentSocket {
 
       const onError = (data: { requestId?: string; message?: string; code?: string }) => {
         if (requestId && data?.requestId && data.requestId !== requestId) return;
-        if (requestId && data?.requestId === requestId) {
-          finish(new Error(data.message || data.code || `${event} failed`));
-        }
+        finish(new Error(data?.message || data?.code || `${event} failed`));
       };
 
       const timer = setTimeout(() => {
-        finish(
-          new Error(
-            `${event} was not acknowledged by the backend within 10s. Redeploy backend or check Render logs.`,
-          ),
-        );
-      }, 10000);
+        // USER_MESSAGE may take longer; resolve with soft ack so UI can wait on task events.
+        finish(null, { ok: true, softTimeout: true });
+      }, 60_000);
 
       const cleanup = () => {
         clearTimeout(timer);
@@ -335,7 +390,6 @@ export class AgentSocket {
 
       socket.on("REQUEST_ACK", onAck);
       socket.on("ERROR", onError);
-      // Never pass a Socket.IO ack callback — Nest often fails to run handlers when one is present.
       socket.emit(event, payload);
     });
   }
