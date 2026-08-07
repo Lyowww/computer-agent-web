@@ -1,0 +1,7 @@
+# Render Blueprint — Static Site (publish directory: dist)
+services:
+  - type: web
+    name: computer-agent-web
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
