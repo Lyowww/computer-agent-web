@@ -188,10 +188,17 @@ export class AgentSocket {
 
     return new Promise((resolve, reject) => {
       socket
-        .timeout(15000)
+        .timeout(30000)
         .emit(event, payload, (err: Error | null, response: unknown) => {
-          if (err) reject(err);
-          else resolve(response);
+          if (err) {
+            reject(
+              new Error(
+                err.message?.includes("timeout")
+                  ? "Backend did not acknowledge within 30s (cold start / Redis / DB?). Try again."
+                  : err.message || "Request failed",
+              ),
+            );
+          } else resolve(response);
         });
     });
   }

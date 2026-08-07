@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Camera, MessageSquare } from "lucide-react";
+import { Camera, Copy, MessageSquare, RefreshCw } from "lucide-react";
 import type { Device } from "@/lib/types";
 import { formatOs, formatRelativeTime, taskStatusToPhase } from "@/lib/utils/format";
 import { StatusDot } from "@/components/ui/StatusDot";
@@ -12,12 +13,24 @@ export function DeviceCard({
   device,
   onScreenshot,
   screenshotBusy,
+  onRegenerateToken,
+  regenerateBusy,
 }: {
   device: Device;
   onScreenshot?: (deviceId: string) => void;
   screenshotBusy?: boolean;
+  onRegenerateToken?: (deviceId: string) => void;
+  regenerateBusy?: boolean;
 }) {
   const active = device.activeTask;
+  const [copied, setCopied] = useState(false);
+
+  async function copyToken() {
+    if (!device.deviceToken) return;
+    await navigator.clipboard.writeText(device.deviceToken);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   return (
     <article className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/90 p-5 shadow-sm backdrop-blur">
@@ -41,6 +54,40 @@ export function DeviceCard({
           <dd className="mt-0.5 font-medium">{device.connectionStatus}</dd>
         </div>
       </dl>
+
+      <div className="mt-4 rounded-xl border border-[var(--border)] bg-slate-950/95 p-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-xs uppercase tracking-wide text-slate-400">Device token</p>
+          <div className="flex gap-1">
+            {device.deviceToken ? (
+              <Button size="sm" variant="outline" onClick={() => void copyToken()}>
+                <Copy className="h-3.5 w-3.5" />
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            ) : null}
+            {onRegenerateToken ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={regenerateBusy}
+                onClick={() => onRegenerateToken(device.id)}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                {regenerateBusy ? "…" : "Regenerate"}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        {device.deviceToken ? (
+          <pre className="overflow-x-auto whitespace-pre-wrap break-all text-xs text-emerald-300">
+            {device.deviceToken}
+          </pre>
+        ) : (
+          <p className="text-xs text-amber-200">
+            Token not stored yet. Click Regenerate, or reconnect the agent once to backfill it.
+          </p>
+        )}
+      </div>
 
       <div className="mt-4">
         <p className="text-xs uppercase tracking-wide text-[var(--muted)]">Active task</p>

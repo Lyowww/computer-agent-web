@@ -86,7 +86,7 @@ export default function SettingsPage() {
           </h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
             <li>JWT access tokens are kept in sessionStorage for this browser tab.</li>
-            <li>Device authentication tokens are shown once at creation and never stored here.</li>
+            <li>Device authentication tokens stay visible on the Devices page (copy anytime).</li>
             <li>AI provider API keys and backend secrets never ship in frontend source.</li>
             <li>Voice STT/TTS calls go to your backend (`/api/voice/*`), not third-party keys in the browser.</li>
           </ul>

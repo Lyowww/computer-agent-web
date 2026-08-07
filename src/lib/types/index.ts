@@ -47,6 +47,8 @@ export interface Device {
   revokedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Always available for the device owner once stored / backfilled */
+  deviceToken?: string | null;
   activeTask?: TaskSummary | null;
 }
 

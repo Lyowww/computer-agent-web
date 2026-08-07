@@ -57,12 +57,14 @@ export function CreateDeviceModal({
       <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xl">
         <h2 className="text-lg font-semibold">Register device</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Creates a device record and a one-time device token for the desktop agent.
+          Creates a device record and a device token for the desktop agent. The token stays visible on the Devices page.
         </p>
 
         {tokenOnce ? (
           <div className="mt-4 space-y-3">
-            <ErrorBanner message="Copy this device token now. It will not be shown again." />
+            <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+              Token saved. You can always copy it again from the Devices page.
+            </p>
             <pre className="overflow-x-auto rounded-xl bg-slate-950 p-3 text-xs text-emerald-300">
               {tokenOnce}
             </pre>

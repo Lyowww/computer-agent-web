@@ -22,3 +22,12 @@ export function revokeDevice(id: string): Promise<Device> {
     method: "POST",
   });
 }
+
+export function regenerateDeviceToken(
+  id: string,
+): Promise<{ device: Device; deviceToken: string }> {
+  return apiFetch<{ device: Device; deviceToken: string }>(
+    `/devices/${id}/regenerate-token`,
+    { method: "POST" },
+  );
+}

@@ -9,7 +9,7 @@ import { CreateDeviceModal } from "@/components/devices/CreateDeviceModal";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Spinner } from "@/components/ui/Spinner";
-import { listDevices, revokeDevice } from "@/lib/api/devices";
+import { listDevices, regenerateDeviceToken, revokeDevice } from "@/lib/api/devices";
 import { listTasks } from "@/lib/api/tasks";
 import { formatTimestamp } from "@/lib/utils/format";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -18,6 +18,7 @@ export default function DevicesPage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [revokeId, setRevokeId] = useState<string | null>(null);
+  const [regenId, setRegenId] = useState<string | null>(null);
 
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
   const tasksQuery = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
@@ -26,6 +27,14 @@ export default function DevicesPage() {
     mutationFn: revokeDevice,
     onSuccess: () => {
       setRevokeId(null);
+      void queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+  });
+
+  const regenMutation = useMutation({
+    mutationFn: regenerateDeviceToken,
+    onSuccess: () => {
+      setRegenId(null);
       void queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
   });
@@ -49,7 +58,7 @@ export default function DevicesPage() {
               Devices
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Manage desktop agents linked to your account
+              Manage desktop agents linked to your account. Device tokens stay visible here.
             </p>
           </div>
           <Button onClick={() => setOpen(true)}>
@@ -75,7 +84,11 @@ export default function DevicesPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               {devices.map((device) => (
                 <div key={device.id} className="space-y-2">
-                  <DeviceCard device={device} />
+                  <DeviceCard
+                    device={device}
+                    onRegenerateToken={(id) => setRegenId(id)}
+                    regenerateBusy={regenMutation.isPending && regenId === device.id}
+                  />
                   <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 px-3 py-2 text-xs text-[var(--muted)]">
                     <span>Created {formatTimestamp(device.createdAt)}</span>
                     <Button
@@ -110,6 +123,18 @@ export default function DevicesPage() {
         onCancel={() => setRevokeId(null)}
         onConfirm={() => {
           if (revokeId) revokeMutation.mutate(revokeId);
+        }}
+      />
+      <ConfirmDialog
+        open={!!regenId}
+        title="Regenerate device token?"
+        message="The current token stops working. Paste the new token into the desktop agent Settings."
+        confirmLabel="Regenerate"
+        cancelLabel="Cancel"
+        busy={regenMutation.isPending}
+        onCancel={() => setRegenId(null)}
+        onConfirm={() => {
+          if (regenId) regenMutation.mutate(regenId);
         }}
       />
     </AppShell>
