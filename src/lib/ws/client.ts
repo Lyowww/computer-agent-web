@@ -187,19 +187,24 @@ export class AgentSocket {
     }
 
     return new Promise((resolve, reject) => {
-      socket
-        .timeout(30000)
-        .emit(event, payload, (err: Error | null, response: unknown) => {
-          if (err) {
-            reject(
-              new Error(
-                err.message?.includes("timeout")
-                  ? "Backend did not acknowledge within 30s (cold start / Redis / DB?). Try again."
-                  : err.message || "Request failed",
-              ),
-            );
-          } else resolve(response);
-        });
+      let settled = false;
+      const finish = (err: Error | null, response?: unknown) => {
+        if (settled) return;
+        settled = true;
+        if (err) reject(err);
+        else resolve(response ?? { ok: true });
+      };
+
+      // Prefer Nest return-value ACK, but never leave the UI hung if the server
+      // swallows the callback (guards / adapter bugs). Soft-succeed so SCREEN_RESULT
+      // / NOTIFY_RESULT can still arrive.
+      socket.timeout(8000).emit(event, payload, (err: Error | null, response: unknown) => {
+        if (err) {
+          finish(null, { ok: true, assumed: true, warning: err.message });
+          return;
+        }
+        finish(null, response);
+      });
     });
   }
 }
