@@ -43,17 +43,17 @@ export function ChatComposer({
   return (
     <form
       onSubmit={(e) => void submit(e)}
-      className="shrink-0 border-t border-[var(--border)] bg-[var(--panel)]/90 p-3 backdrop-blur"
+      className="shrink-0 border-t border-[var(--border)] bg-[var(--panel)]/95 p-2.5 backdrop-blur sm:p-3"
     >
-      <div className="flex flex-wrap items-center gap-2 pb-2">
-        <label className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white px-3 py-1.5 text-xs font-medium">
+      <div className="flex flex-wrap items-center gap-1.5 pb-2 sm:gap-2">
+        <label className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white px-2.5 py-1.5 text-[11px] font-medium sm:gap-2 sm:px-3 sm:text-xs">
           <Bot className="h-3.5 w-3.5" />
           <input
             type="checkbox"
             checked={aiEnabled}
             onChange={(e) => onAiEnabledChange(e.target.checked)}
           />
-          AI actions
+          AI
         </label>
         <VoiceRecorderButton
           disabled={disabled || sending}
@@ -65,14 +65,16 @@ export function ChatComposer({
           variant="outline"
           disabled={disabled || screenshotBusy}
           onClick={onScreenshot}
+          className="px-2.5 sm:px-3"
+          aria-label="Screenshot"
         >
           <Camera className="h-4 w-4" />
-          Screenshot
+          <span className="hidden sm:inline">Screenshot</span>
         </Button>
         {canCancel ? (
           <Button type="button" size="sm" variant="danger" onClick={onCancel}>
             <StopCircle className="h-4 w-4" />
-            Cancel task
+            <span className="hidden sm:inline">Cancel</span>
           </Button>
         ) : null}
       </div>
@@ -81,13 +83,9 @@ export function ChatComposer({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           rows={2}
-          placeholder={
-            aiEnabled
-              ? "Tell the AI what to do… e.g. Open Chrome"
-              : "Send a notification to the desktop… (AI off)"
-          }
+          placeholder={aiEnabled ? "Tell the AI what to do…" : "Notify the desktop…"}
           disabled={disabled || sending}
-          className="min-h-[52px] flex-1 resize-none rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+          className="min-h-[48px] flex-1 resize-none rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-base outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 sm:min-h-[52px] sm:text-sm"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -95,12 +93,17 @@ export function ChatComposer({
             }
           }}
         />
-        <Button type="submit" disabled={disabled || sending || !value.trim()} className="h-[52px]">
+        <Button
+          type="submit"
+          disabled={disabled || sending || !value.trim()}
+          className="h-12 w-12 shrink-0 px-0 sm:h-[52px] sm:w-auto sm:px-4"
+          aria-label={aiEnabled ? "Send" : "Notify"}
+        >
           {aiEnabled ? <Send className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
-          {aiEnabled ? "Send" : "Notify"}
+          <span className="hidden sm:inline">{aiEnabled ? "Send" : "Notify"}</span>
         </Button>
       </div>
-      <p className="mt-2 text-xs text-[var(--muted)]">
+      <p className="mt-2 hidden text-xs text-[var(--muted)] sm:block">
         {aiEnabled
           ? "AI on: messages create tasks and can execute actions on the device."
           : "AI off: messages are delivered as desktop notifications only. Screenshots still work."}

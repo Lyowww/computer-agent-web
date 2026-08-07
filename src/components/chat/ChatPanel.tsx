@@ -222,53 +222,53 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     activeTaskStatus !== "CANCELLED";
 
   return (
-    <div className="grid h-[calc(100dvh-7.5rem)] gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)] lg:h-[calc(100dvh-5.5rem)]">
-      <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 shadow-sm backdrop-blur">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-          <div>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
+    <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)] lg:gap-4">
+      <section className="flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[var(--panel)]/90 shadow-sm backdrop-blur md:rounded-2xl md:border">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="min-w-0">
+            <h1 className="font-[family-name:var(--font-display)] text-xl tracking-tight sm:text-2xl">
               Chat
             </h1>
-            <p className="text-sm text-[var(--muted)]">
+            <p className="hidden text-sm text-[var(--muted)] sm:block">
               Notify or run AI actions — manage apps on the Apps page
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <PhaseBadge phase={phase} />
             <Link
               href="/apps"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
+              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
             >
               <AppWindow className="h-3.5 w-3.5" />
               Apps
             </Link>
             <Link
               href="/processes"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)]"
+              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
             >
               <Cpu className="h-3.5 w-3.5" />
               Processes
             </Link>
-            <label className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs">
+            <label className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-2.5 py-1.5 text-[11px] sm:gap-2 sm:px-3 sm:text-xs">
               <input
                 type="checkbox"
                 checked={ttsEnabled}
                 onChange={(e) => setTtsEnabled(e.target.checked)}
               />
-              Speak replies
+              Speak
             </label>
           </div>
         </header>
 
-        <div className="shrink-0 border-b border-[var(--border)] px-4 py-3">
-          <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        <div className="shrink-0 border-b border-[var(--border)] px-3 py-2.5 sm:px-4 sm:py-3">
+          <label className="block text-[11px] font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
+          <div className="mt-1 flex items-center gap-2 sm:gap-3">
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="min-w-[200px] flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm"
+              className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-base sm:text-sm"
             >
               <option value="" disabled>
                 Select device
@@ -284,12 +284,12 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         </div>
 
         {lastError ? (
-          <div className="shrink-0 px-4 pt-3">
+          <div className="shrink-0 px-3 pt-2 sm:px-4 sm:pt-3">
             <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
           </div>
         ) : null}
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 sm:px-4">
           <MessageList messages={messages} />
         </div>
 
@@ -305,7 +305,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         />
       </section>
 
-      <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+      <aside className="hidden min-h-0 flex-col gap-4 overflow-y-auto lg:flex">
         {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
         {aiEnabled ? <ActionList actions={plannedActions} /> : null}
         <ScreenshotViewer
@@ -319,6 +319,23 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           }
           deviceName={selectedDevice?.name}
         />
+      </aside>
+
+      {/* Mobile: screenshot / progress below chat, not competing for height */}
+      <aside className="space-y-3 px-3 pb-2 lg:hidden">
+        {latestScreenshot ? (
+          <ScreenshotViewer
+            frame={{
+              ...latestScreenshot,
+              deviceName: selectedDevice?.name,
+            }}
+            deviceName={selectedDevice?.name}
+          />
+        ) : null}
+        {aiEnabled && progressSteps.length ? (
+          <TaskProgress steps={progressSteps} phase={phase} />
+        ) : null}
+        {aiEnabled && plannedActions.length ? <ActionList actions={plannedActions} /> : null}
       </aside>
 
       <ConfirmDialog

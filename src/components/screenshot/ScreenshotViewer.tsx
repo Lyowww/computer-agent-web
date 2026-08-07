@@ -127,7 +127,7 @@ export function ScreenshotViewer({
           ) : null}
         </div>
       </div>
-      <div className="max-h-[70vh] overflow-auto bg-[linear-gradient(45deg,#0f172a_25%,transparent_25%),linear-gradient(-45deg,#0f172a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#0f172a_75%),linear-gradient(-45deg,transparent_75%,#0f172a_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] p-3">
+      <div className="max-h-[55vh] overflow-auto bg-[linear-gradient(45deg,#0f172a_25%,transparent_25%),linear-gradient(-45deg,#0f172a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#0f172a_75%),linear-gradient(-45deg,transparent_75%,#0f172a_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] p-2 sm:max-h-[70vh] sm:p-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}

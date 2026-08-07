@@ -33,10 +33,10 @@ export function DeviceCard({
   }
 
   return (
-    <article className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/90 p-5 shadow-sm backdrop-blur">
+    <article className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/90 p-4 shadow-sm backdrop-blur sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-[family-name:var(--font-display)] text-xl tracking-tight">
+        <div className="min-w-0">
+          <h3 className="truncate font-[family-name:var(--font-display)] text-lg tracking-tight sm:text-xl">
             {device.name}
           </h3>
           <p className="mt-1 text-sm text-[var(--muted)]">{formatOs(device.os)}</p>
@@ -56,9 +56,9 @@ export function DeviceCard({
       </dl>
 
       <div className="mt-4 rounded-xl border border-[var(--border)] bg-slate-950/95 p-3">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs uppercase tracking-wide text-slate-400">Device token</p>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {device.deviceToken ? (
               <Button size="sm" variant="outline" onClick={() => void copyToken()}>
                 <Copy className="h-3.5 w-3.5" />
@@ -101,9 +101,9 @@ export function DeviceCard({
         )}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Link href={`/chat?deviceId=${device.id}`}>
-          <Button size="sm">
+      <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+        <Link href={`/chat?deviceId=${device.id}`} className="sm:contents">
+          <Button size="sm" className="w-full sm:w-auto">
             <MessageSquare className="h-4 w-4" />
             Open Chat
           </Button>
@@ -111,6 +111,7 @@ export function DeviceCard({
         <Button
           size="sm"
           variant="outline"
+          className="w-full sm:w-auto"
           disabled={device.connectionStatus !== "ONLINE" || screenshotBusy}
           onClick={() => onScreenshot?.(device.id)}
         >

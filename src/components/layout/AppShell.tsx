@@ -18,12 +18,12 @@ import { useChatStore } from "@/stores/chatStore";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 
 const nav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/devices", label: "Devices", icon: MonitorSmartphone },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/apps", label: "Apps", icon: AppWindow },
-  { href: "/processes", label: "Processes", icon: Cpu },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Home", short: "Home", icon: LayoutDashboard },
+  { href: "/devices", label: "Devices", short: "Devices", icon: MonitorSmartphone },
+  { href: "/chat", label: "Chat", short: "Chat", icon: MessageSquare },
+  { href: "/apps", label: "Apps", short: "Apps", icon: AppWindow },
+  { href: "/processes", label: "Processes", short: "Procs", icon: Cpu },
+  { href: "/settings", label: "Settings", short: "More", icon: Settings },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -32,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
   const wsConnected = useChatStore((s) => s.wsConnected);
+  const isChat = pathname.startsWith("/chat");
 
   function logout() {
     clearSession();
@@ -40,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <div className="min-h-[100dvh] overflow-x-hidden bg-[var(--bg)] text-[var(--fg)]">
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute -left-24 top-0 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(14,116,144,0.22),transparent_70%)] blur-2xl" />
           <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(15,23,42,0.55),transparent_70%)] blur-2xl" />
@@ -55,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        <div className="mx-auto flex min-h-screen max-w-7xl flex-col md:flex-row">
+        <div className="relative mx-auto flex min-h-[100dvh] max-w-7xl flex-col md:flex-row">
           <aside className="hidden w-64 shrink-0 border-r border-[var(--border)] bg-[var(--panel)]/80 backdrop-blur-md md:flex md:flex-col">
             <div className="border-b border-[var(--border)] px-5 py-6">
               <p className="font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--fg)]">
@@ -79,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
+                    {item.label === "Home" ? "Dashboard" : item.label}
                   </Link>
                 );
               })}
@@ -106,28 +107,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </aside>
 
-          <div className="flex min-h-screen flex-1 flex-col pb-20 md:pb-0">
-            <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[var(--border)] bg-[var(--panel)]/75 px-4 py-3 backdrop-blur-md md:hidden">
-              <div>
-                <p className="font-[family-name:var(--font-display)] text-xl">PetAI</p>
-                <p className="text-xs text-[var(--muted)]">
+          <div
+            className={cn(
+              "flex min-h-0 flex-1 flex-col",
+              // Reserve space for mobile bottom nav + safe area
+              "pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0",
+            )}
+          >
+            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--panel)]/90 px-3 py-2.5 backdrop-blur-md pt-[max(0.625rem,env(safe-area-inset-top))] md:hidden">
+              <div className="min-w-0">
+                <p className="font-[family-name:var(--font-display)] text-lg leading-tight">
+                  PetAI
+                </p>
+                <p className="truncate text-[11px] text-[var(--muted)]">
                   {wsConnected ? "Connected" : "Offline"}
+                  {user?.email ? ` · ${user.email}` : ""}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm"
+                className="shrink-0 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-xs"
               >
                 Sign out
               </button>
             </header>
-            <main className="flex-1 px-4 py-5 md:px-8 md:py-8">{children}</main>
+
+            <main
+              className={cn(
+                "flex min-h-0 flex-1 flex-col",
+                isChat
+                  ? "px-0 py-0 md:px-6 md:py-6"
+                  : "px-3 py-4 sm:px-4 sm:py-5 md:px-8 md:py-8",
+              )}
+            >
+              {children}
+            </main>
           </div>
         </div>
 
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--panel)]/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto grid max-w-lg grid-cols-6 gap-1 px-1 py-2">
+        <nav
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--panel)]/95 backdrop-blur-md md:hidden"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <div className="mx-auto flex max-w-lg items-stretch justify-between gap-0.5 px-1 pt-1">
             {nav.map((item) => {
               const Icon = item.icon;
               const active = pathname.startsWith(item.href);
@@ -136,12 +159,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px]",
+                    "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[10px] leading-tight",
                     active ? "text-[var(--accent)]" : "text-[var(--muted)]",
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="w-full truncate text-center">{item.short}</span>
                 </Link>
               );
             })}

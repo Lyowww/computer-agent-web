@@ -72,15 +72,15 @@ export default function LoginPage() {
         />
       </div>
 
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-4 py-10 md:flex-row md:items-center md:gap-16 md:px-8">
-        <div className="mb-10 max-w-lg md:mb-0">
-          <p className="font-[family-name:var(--font-display)] text-5xl tracking-tight text-[var(--fg)] md:text-6xl">
+      <div className="relative mx-auto flex min-h-[100dvh] max-w-6xl flex-col justify-center px-4 py-8 sm:py-10 md:flex-row md:items-center md:gap-16 md:px-8">
+        <div className="mb-8 max-w-lg md:mb-0">
+          <p className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[var(--fg)] sm:text-5xl md:text-6xl">
             PetAI
           </p>
-          <h1 className="mt-4 text-2xl font-semibold text-slate-800 md:text-3xl">
+          <h1 className="mt-3 text-xl font-semibold text-slate-800 sm:mt-4 sm:text-2xl md:text-3xl">
             Control your computer from anywhere.
           </h1>
-          <p className="mt-3 max-w-md text-[var(--muted)]">
+          <p className="mt-3 max-w-md text-sm text-[var(--muted)] sm:text-base">
             Sign in to monitor devices, chat with the agent, capture screens, and
             approve sensitive actions in real time.
           </p>
@@ -88,7 +88,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={(e) => void onSubmit(e)}
-          className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-white/85 p-6 shadow-xl backdrop-blur"
+          className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-white/85 p-5 shadow-xl backdrop-blur sm:rounded-3xl sm:p-6"
         >
           <div className="mb-5 flex rounded-xl bg-slate-100 p-1">
             <button

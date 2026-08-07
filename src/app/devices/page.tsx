@@ -52,16 +52,16 @@ export default function DevicesPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+            <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
               Devices
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
               Manage desktop agents linked to your account. Device tokens stay visible here.
             </p>
           </div>
-          <Button onClick={() => setOpen(true)}>
+          <Button onClick={() => setOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add device
           </Button>

@@ -33,38 +33,38 @@ export default function SettingsPage() {
           </p>
         </header>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-white/80 p-5">
+        <section className="rounded-2xl border border-[var(--border)] bg-white/80 p-4 sm:p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
             Account
           </h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-4">
+          <dl className="mt-3 space-y-3 text-sm">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
               <dt className="text-[var(--muted)]">Name</dt>
-              <dd className="font-medium">{profile?.name || "—"}</dd>
+              <dd className="font-medium break-all">{profile?.name || "—"}</dd>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
               <dt className="text-[var(--muted)]">Email</dt>
-              <dd className="font-medium">{profile?.email}</dd>
+              <dd className="font-medium break-all">{profile?.email}</dd>
             </div>
           </dl>
         </section>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-white/80 p-5">
+        <section className="rounded-2xl border border-[var(--border)] bg-white/80 p-4 sm:p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
             Connectivity
           </h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-4">
+          <dl className="mt-3 space-y-3 text-sm">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
               <dt className="text-[var(--muted)]">API</dt>
-              <dd className="truncate font-mono text-xs">{getApiBaseUrl()}</dd>
+              <dd className="break-all font-mono text-xs">{getApiBaseUrl()}</dd>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
               <dt className="text-[var(--muted)]">WebSocket</dt>
               <dd className="font-medium">
                 {wsConnected ? "Connected" : "Disconnected"}
               </dd>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
               <dt className="text-[var(--muted)]">Backend health</dt>
               <dd className="font-medium">
                 {healthQuery.isLoading

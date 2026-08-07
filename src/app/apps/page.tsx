@@ -106,14 +106,14 @@ export default function AppsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-5">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
+      <div className="mx-auto max-w-4xl space-y-4 sm:space-y-5">
+        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <p className="inline-flex items-center gap-2 text-sm text-[var(--muted)]">
               <AppWindow className="h-4 w-4" />
               Device control
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl tracking-tight">
+            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
               Applications
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
@@ -123,6 +123,7 @@ export default function AppsPage() {
           <Button
             type="button"
             variant="outline"
+            className="w-full sm:w-auto"
             disabled={!online || busy === "refresh"}
             onClick={() => void refresh()}
           >
@@ -131,15 +132,15 @@ export default function AppsPage() {
           </Button>
         </header>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-4 shadow-sm">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
           <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
+          <div className="mt-1 flex items-center gap-2 sm:gap-3">
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="min-w-[220px] flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm"
+              className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-base sm:text-sm"
             >
               <option value="" disabled>
                 Select device
@@ -158,16 +159,17 @@ export default function AppsPage() {
           <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
         ) : null}
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-4 shadow-sm">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
           <h2 className="text-sm font-semibold">Quick open</h2>
           <p className="mt-1 text-xs text-[var(--muted)]">Launch a common app on the device</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             {QUICK_OPEN.map((app) => (
               <Button
                 key={app}
                 type="button"
                 size="sm"
                 variant="outline"
+                className="justify-start sm:justify-center"
                 disabled={!online || !!busy}
                 onClick={() => void openApp(app)}
               >
@@ -178,7 +180,7 @@ export default function AppsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-4 shadow-sm">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
           <div className="flex items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-semibold">Running apps ({apps.length})</h2>
@@ -192,15 +194,15 @@ export default function AppsPage() {
               apps.map((app) => (
                 <li
                   key={app.name}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
                 >
-                  <div>
-                    <p className="font-medium">{app.name}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{app.name}</p>
                     {app.path ? (
                       <p className="truncate text-xs text-[var(--muted)]">{app.path}</p>
                     ) : null}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2 sm:flex">
                     <Button
                       type="button"
                       size="sm"
