@@ -152,7 +152,7 @@ export class AgentSocket {
     taskId?: string;
     deviceId?: string;
   }): Promise<unknown> {
-    return this.emitAck("CAPTURE_SCREEN", payload);
+    return this.emitAndWaitForResult("CAPTURE_SCREEN", payload, "SCREEN_RESULT", 25000);
   }
 
   emitNotify(payload: {
@@ -161,7 +161,7 @@ export class AgentSocket {
     title?: string;
     deviceId?: string;
   }): Promise<unknown> {
-    return this.emitAck("NOTIFY", payload);
+    return this.emitAndWaitForResult("NOTIFY", payload, "NOTIFY_RESULT", 15000);
   }
 
   emitListProcesses(payload: {
@@ -169,7 +169,7 @@ export class AgentSocket {
     deviceId?: string;
     limit?: number;
   }): Promise<unknown> {
-    return this.emitAck("LIST_PROCESSES", payload);
+    return this.emitAndWaitForResult("LIST_PROCESSES", payload, "PROCESSES_RESULT", 15000);
   }
 
   emitListApps(payload: {
@@ -177,7 +177,88 @@ export class AgentSocket {
     deviceId?: string;
     limit?: number;
   }): Promise<unknown> {
-    return this.emitAck("LIST_APPS", payload);
+    return this.emitAndWaitForResult("LIST_APPS", payload, "APPS_RESULT", 15000);
+  }
+
+  /**
+   * Fire the command, accept Nest/REQUEST_ACK if present, but resolve only when
+   * the matching result event arrives (or reject on timeout / ERROR).
+   */
+  private emitAndWaitForResult(
+    event: string,
+    payload: { requestId: string },
+    resultEvent: string,
+    timeoutMs: number,
+  ): Promise<unknown> {
+    const socket = this.socket;
+    if (!socket?.connected) {
+      return Promise.reject(new Error("WebSocket is not connected"));
+    }
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (err: Error | null, response?: unknown) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (err) reject(err);
+        else resolve(response);
+      };
+
+      const onResult = (data: { requestId?: string; error?: string }) => {
+        if (data?.requestId && data.requestId !== payload.requestId) return;
+        if (data?.error) {
+          finish(new Error(data.error));
+          return;
+        }
+        finish(null, data);
+      };
+
+      const onEnvelope = (envelope: { event?: string; payload?: unknown }) => {
+        if (envelope?.event !== resultEvent) return;
+        onResult((envelope.payload ?? {}) as { requestId?: string; error?: string });
+      };
+
+      const onAck = (data: { event?: string; requestId?: string; ok?: boolean; message?: string }) => {
+        if (data?.event && data.event !== event) return;
+        if (data?.requestId && data.requestId !== payload.requestId) return;
+        if (data?.ok === false) {
+          finish(new Error(data.message || `${event} failed`));
+        }
+        // ok ACK alone is not enough — wait for device result.
+      };
+
+      const onError = (data: { requestId?: string; message?: string; code?: string }) => {
+        if (data?.requestId && data.requestId !== payload.requestId) return;
+        if (data?.requestId === payload.requestId) {
+          finish(new Error(data.message || data.code || `${event} failed`));
+        }
+      };
+
+      const timer = setTimeout(() => {
+        finish(
+          new Error(
+            `${event} timed out after ${Math.round(timeoutMs / 1000)}s — device did not respond. Check the desktop agent Logs for CAPTURE_SCREEN / NOTIFY.`,
+          ),
+        );
+      }, timeoutMs);
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        socket.off(resultEvent, onResult);
+        socket.off("message", onEnvelope);
+        socket.off("REQUEST_ACK", onAck);
+        socket.off("ERROR", onError);
+      };
+
+      socket.on(resultEvent, onResult);
+      socket.on("message", onEnvelope);
+      socket.on("REQUEST_ACK", onAck);
+      socket.on("ERROR", onError);
+
+      // Emit without requiring Nest ACK (ACK has been unreliable); wait for result event.
+      socket.emit(event, payload);
+    });
   }
 
   private emitAck(event: string, payload: unknown): Promise<unknown> {
@@ -195,12 +276,27 @@ export class AgentSocket {
         else resolve(response ?? { ok: true });
       };
 
-      // Prefer Nest return-value ACK, but never leave the UI hung if the server
-      // swallows the callback (guards / adapter bugs). Soft-succeed so SCREEN_RESULT
-      // / NOTIFY_RESULT can still arrive.
+      const onAck = (data: { event?: string; ok?: boolean; message?: string }) => {
+        if (data?.event && data.event !== event) return;
+        if (data?.ok === false) {
+          finish(new Error(data.message || `${event} failed`));
+          return;
+        }
+        finish(null, data);
+      };
+
+      const timer = setTimeout(() => {
+        socket.off("REQUEST_ACK", onAck);
+        // Soft-fallback for chat/AI kickoff only — result streams arrive as other events.
+        finish(null, { ok: true, assumed: true });
+      }, 10000);
+
+      socket.on("REQUEST_ACK", onAck);
       socket.timeout(8000).emit(event, payload, (err: Error | null, response: unknown) => {
+        socket.off("REQUEST_ACK", onAck);
+        clearTimeout(timer);
         if (err) {
-          finish(null, { ok: true, assumed: true, warning: err.message });
+          // Keep waiting briefly for REQUEST_ACK; timer handles soft fallback.
           return;
         }
         finish(null, response);
