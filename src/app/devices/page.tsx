@@ -8,14 +8,17 @@ import { DeviceCard } from "@/components/devices/DeviceCard";
 import { CreateDeviceModal } from "@/components/devices/CreateDeviceModal";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Spinner } from "@/components/ui/Spinner";
+import { DeviceCardSkeleton } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/Card";
 import { listDevices, regenerateDeviceToken, revokeDevice } from "@/lib/api/devices";
 import { listTasks } from "@/lib/api/tasks";
 import { formatTimestamp } from "@/lib/utils/format";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 
 export default function DevicesPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [revokeId, setRevokeId] = useState<string | null>(null);
   const [regenId, setRegenId] = useState<string | null>(null);
@@ -27,6 +30,7 @@ export default function DevicesPage() {
     mutationFn: revokeDevice,
     onSuccess: () => {
       setRevokeId(null);
+      toast("Device revoked", "success");
       void queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
   });
@@ -35,6 +39,7 @@ export default function DevicesPage() {
     mutationFn: regenerateDeviceToken,
     onSuccess: () => {
       setRegenId(null);
+      toast("Token regenerated", "success");
       void queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
   });
@@ -58,7 +63,8 @@ export default function DevicesPage() {
               Devices
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Manage desktop agents linked to your account. Device tokens stay visible here.
+              Manage desktop agents. Agent keys stay tucked behind setup when you
+              need them.
             </p>
           </div>
           <Button onClick={() => setOpen(true)} className="w-full sm:w-auto">
@@ -68,8 +74,9 @@ export default function DevicesPage() {
         </header>
 
         {devicesQuery.isLoading ? (
-          <div className="flex items-center gap-2 text-[var(--muted)]">
-            <Spinner /> Loading…
+          <div className="grid gap-4 sm:grid-cols-2">
+            <DeviceCardSkeleton />
+            <DeviceCardSkeleton />
           </div>
         ) : devicesQuery.isError ? (
           <ErrorBanner
@@ -86,10 +93,11 @@ export default function DevicesPage() {
                 <div key={device.id} className="space-y-2">
                   <DeviceCard
                     device={device}
+                    showSetup
                     onRegenerateToken={(id) => setRegenId(id)}
                     regenerateBusy={regenMutation.isPending && regenId === device.id}
                   />
-                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-white/60 px-3 py-2 text-xs text-[var(--muted)]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel)]/70 px-3 py-2 text-xs text-[var(--muted)]">
                     <span>Created {formatTimestamp(device.createdAt)}</span>
                     <Button
                       size="sm"
@@ -104,9 +112,9 @@ export default function DevicesPage() {
               ))}
             </div>
             {!devices.length ? (
-              <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 p-8 text-center text-sm text-[var(--muted)]">
-                No devices registered yet.
-              </div>
+              <Card className="border-dashed text-center" padding="lg">
+                <p className="text-sm text-[var(--muted)]">No devices registered yet.</p>
+              </Card>
             ) : null}
           </div>
         )}

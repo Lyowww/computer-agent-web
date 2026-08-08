@@ -34,14 +34,17 @@ export function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/45 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#090d16]/70 p-4 backdrop-blur-sm animate-fade-in sm:items-center">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="w-full max-w-md animate-in rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xl"
+        className="w-full max-w-md animate-sheet-up rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl sm:animate-fade-in"
       >
-        <h2 id="confirm-title" className="text-lg font-semibold text-[var(--fg)]">
+        <h2
+          id="confirm-title"
+          className="font-[family-name:var(--font-display)] text-lg tracking-tight text-[var(--fg)]"
+        >
           {title}
         </h2>
         <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">
@@ -51,7 +54,7 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onCancel} disabled={busy}>
             {cancelLabel}
           </Button>
-          <Button onClick={onConfirm} disabled={busy}>
+          <Button onClick={onConfirm} loading={busy}>
             {busy ? "Working…" : confirmLabel}
           </Button>
         </div>

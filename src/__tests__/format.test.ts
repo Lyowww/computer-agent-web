@@ -5,6 +5,7 @@ import {
   taskStatusToPhase,
   connectionLabel,
   isOnline,
+  formatActionChip,
 } from "@/lib/utils/format";
 
 describe("format helpers", () => {
@@ -34,5 +35,15 @@ describe("format helpers", () => {
     expect(isOnline("ONLINE")).toBe(true);
     expect(isOnline("OFFLINE")).toBe(false);
     expect(connectionLabel("ONLINE")).toBe("Online");
+  });
+
+  it("formats action chips without raw JSON", () => {
+    expect(formatActionChip("open_app", { app: "Google Chrome" })).toBe(
+      "Open App: Google Chrome",
+    );
+    expect(formatActionChip("click", { x: 450, y: 320 })).toBe(
+      "Click: (X: 450, Y: 320)",
+    );
+    expect(formatActionChip("type", { text: "hello" })).toBe("Type: hello");
   });
 });

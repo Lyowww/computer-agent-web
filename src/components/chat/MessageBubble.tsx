@@ -13,9 +13,12 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[80%]",
-          isUser && "bg-[var(--accent)] text-white",
-          !isUser && !isSystem && "bg-white text-[var(--fg)] border border-[var(--border)]",
-          isSystem && "bg-amber-50 text-amber-900 border border-amber-200",
+          isUser && "bg-[var(--accent)] text-white shadow-[0_8px_24px_-12px_var(--accent-glow)]",
+          !isUser &&
+            !isSystem &&
+            "border border-[var(--border)] bg-[var(--panel-elevated)] text-[var(--fg)]",
+          isSystem &&
+            "border border-[color-mix(in_srgb,var(--warning)_35%,transparent)] bg-[var(--warning-soft)] text-[var(--warning)]",
         )}
       >
         <p className="mb-1 text-[10px] uppercase tracking-wide opacity-70">

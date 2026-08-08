@@ -11,7 +11,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (hydrated && !token) {
-      router.replace("/login");
+      router.replace("/login/");
     }
   }, [hydrated, token, router]);
 

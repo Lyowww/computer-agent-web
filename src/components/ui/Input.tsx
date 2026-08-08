@@ -18,13 +18,14 @@ export function Input({ className, label, error, id, ...props }: InputProps) {
       <input
         id={inputId}
         className={cn(
-          "w-full rounded-xl border border-[var(--border)] bg-white/80 px-3 py-2.5 text-sm text-[var(--fg)] outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20",
-          error && "border-rose-400 focus:border-rose-500 focus:ring-rose-200",
+          "w-full rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-2.5 text-sm text-[var(--fg)] outline-none transition placeholder:text-[var(--muted)]",
+          "focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]",
+          error && "border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger-soft)]",
           className,
         )}
         {...props}
       />
-      {error ? <span className="text-xs text-rose-600">{error}</span> : null}
+      {error ? <span className="text-xs text-[var(--danger)]">{error}</span> : null}
     </label>
   );
 }

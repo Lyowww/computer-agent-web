@@ -1,17 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #e8eef5;
+  --bg: #f1f5f9;
   --fg: #0f172a;
   --muted: #64748b;
-  --panel: #f8fafc;
-  --border: #cbd5e1;
-  --accent: #0e7490;
-  --accent-strong: #155e75;
-  --accent-soft: #cffafe;
+  --panel: #ffffff;
+  --panel-elevated: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --accent: #0891b2;
+  --accent-strong: #0e7490;
+  --accent-soft: rgba(8, 145, 178, 0.12);
+  --accent-glow: rgba(6, 182, 212, 0.35);
+  --success: #059669;
+  --success-soft: rgba(5, 150, 105, 0.12);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.12);
+  --danger: #e11d48;
+  --danger-soft: rgba(225, 29, 72, 0.12);
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   --font-display: var(--font-display);
   --font-sans: var(--font-body);
   --font-mono: var(--font-mono);
+  color-scheme: light;
+}
+
+.dark,
+:root.dark {
+  --bg: #090d16;
+  --fg: #e8eef8;
+  --muted: #94a3b8;
+  --panel: #121824;
+  --panel-elevated: #1a2233;
+  --border: #1e293b;
+  --border-strong: #334155;
+  --accent: #06b6d4;
+  --accent-strong: #0891b2;
+  --accent-soft: rgba(6, 182, 212, 0.15);
+  --accent-glow: rgba(6, 182, 212, 0.45);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.15);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.15);
+  --danger: #fb7185;
+  --danger-soft: rgba(251, 113, 133, 0.15);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --bg: #090d16;
+    --fg: #e8eef8;
+    --muted: #94a3b8;
+    --panel: #121824;
+    --panel-elevated: #1a2233;
+    --border: #1e293b;
+    --border-strong: #334155;
+    --accent: #06b6d4;
+    --accent-strong: #0891b2;
+    --accent-soft: rgba(6, 182, 212, 0.15);
+    --accent-glow: rgba(6, 182, 212, 0.45);
+    --success: #34d399;
+    --success-soft: rgba(52, 211, 153, 0.15);
+    --warning: #fbbf24;
+    --warning-soft: rgba(251, 191, 36, 0.15);
+    --danger: #fb7185;
+    --danger-soft: rgba(251, 113, 133, 0.15);
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
@@ -54,4 +110,99 @@ select {
   select {
     font-size: 16px;
   }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-toast-in {
+  animation: toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.panel-noise {
+  background-image: var(--noise);
+}
+
+.glass-panel {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+.select-field {
+  width: 100%;
+  min-width: 0;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--panel-elevated);
+  color: var(--fg);
+  padding: 0.625rem 0.75rem;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.select-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }

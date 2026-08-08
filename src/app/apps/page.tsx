@@ -11,9 +11,20 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { StatusDot } from "@/components/ui/StatusDot";
+import { Card } from "@/components/ui/Card";
 import { LockControls } from "@/components/devices/LockControls";
+import { useToast } from "@/components/ui/Toast";
 
-const QUICK_OPEN = ["Chrome", "Safari", "Firefox", "VS Code", "Slack", "Terminal", "Notes", "Calculator"];
+const QUICK_OPEN = [
+  "Chrome",
+  "Safari",
+  "Firefox",
+  "VS Code",
+  "Slack",
+  "Terminal",
+  "Notes",
+  "Calculator",
+];
 
 export default function AppsPage() {
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
@@ -26,6 +37,7 @@ export default function AppsPage() {
     setLastError,
     setApps,
   } = useChatStore();
+  const { toast } = useToast();
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,6 +87,7 @@ export default function AppsPage() {
         app,
         deviceId: selectedDeviceId,
       });
+      toast(`Opening ${app}`, "info");
       await refresh();
     } catch (err) {
       setLastError(err instanceof Error ? err.message : `Failed to open ${app}`);
@@ -97,6 +110,7 @@ export default function AppsPage() {
         deviceId: selectedDeviceId,
       });
       setApps(apps.filter((a) => a.name !== app));
+      toast(`Quit ${app}`, "success");
       await refresh();
     } catch (err) {
       setLastError(err instanceof Error ? err.message : `Failed to close ${app}`);
@@ -117,6 +131,7 @@ export default function AppsPage() {
         requestId: createRequestId("lock"),
         deviceId: selectedDeviceId,
       });
+      toast("Lock command sent", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to lock screen");
     } finally {
@@ -136,6 +151,7 @@ export default function AppsPage() {
         requestId: createRequestId("unlock"),
         deviceId: selectedDeviceId,
       });
+      toast("Unlock command sent", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to unlock screen");
     } finally {
@@ -153,10 +169,10 @@ export default function AppsPage() {
               Device control
             </p>
             <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
-              Applications
+              App Center
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Open, quit, lock, or unlock the selected desktop agent
+              Launch presets, quit running apps, and lock the selected agent
             </p>
           </div>
           <Button
@@ -164,6 +180,7 @@ export default function AppsPage() {
             variant="outline"
             className="w-full sm:w-auto"
             disabled={!online || busy === "refresh"}
+            loading={busy === "refresh"}
             onClick={() => void refresh()}
           >
             <RefreshCw className={`h-4 w-4 ${busy === "refresh" ? "animate-spin" : ""}`} />
@@ -171,7 +188,7 @@ export default function AppsPage() {
           </Button>
         </header>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
+        <Card>
           <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
@@ -179,7 +196,7 @@ export default function AppsPage() {
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-base sm:text-sm"
+              className="select-field flex-1"
             >
               <option value="" disabled>
                 Select device
@@ -192,67 +209,70 @@ export default function AppsPage() {
             </select>
             {selectedDevice ? <StatusDot status={selectedDevice.connectionStatus} /> : null}
           </div>
-        </section>
+        </Card>
 
         {lastError ? (
           <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
         ) : null}
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
+        <Card>
           <h2 className="text-sm font-semibold">Lock screen</h2>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Lock opens the OS lock screen. Unlock types the password saved in the desktop agent Settings.
+            Lock opens the OS lock screen. Unlock types the password saved in the
+            desktop agent Settings.
           </p>
           <LockControls
             className="mt-3 grid grid-cols-2 gap-2 sm:max-w-sm"
             disabled={!online}
-            busy={busy}
+            busy={busy === "lock" ? "lock" : busy === "unlock" ? "unlock" : null}
             onLock={() => void lockScreen()}
             onUnlock={() => void unlockScreen()}
           />
-        </section>
+        </Card>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
-          <h2 className="text-sm font-semibold">Quick open</h2>
-          <p className="mt-1 text-xs text-[var(--muted)]">Launch a common app on the device</p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <Card>
+          <h2 className="text-sm font-semibold">Quick launch</h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Launch a common app on the device
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {QUICK_OPEN.map((app) => (
               <Button
                 key={app}
                 type="button"
                 size="sm"
                 variant="outline"
-                className="justify-start sm:justify-center"
+                className="justify-start"
                 disabled={!online || !!busy}
                 onClick={() => void openApp(app)}
               >
-                <Play className="h-3.5 w-3.5" />
+                <Play className="h-3.5 w-3.5 text-[var(--accent)]" />
                 {app}
               </Button>
             ))}
           </div>
-        </section>
+        </Card>
 
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-semibold">Running apps ({apps.length})</h2>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Quit an app, or reopen it if it disappeared
-              </p>
-            </div>
+        <Card padding="none">
+          <div className="border-b border-[var(--border)] px-4 py-3 sm:px-5">
+            <h2 className="text-sm font-semibold">Running apps ({apps.length})</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Focus / reopen an app, or quit it remotely
+            </p>
           </div>
-          <ul className="mt-4 divide-y divide-[var(--border)]">
+          <ul className="divide-y divide-[var(--border)] px-4 sm:px-5">
             {apps.length ? (
               apps.map((app) => (
                 <li
                   key={app.name}
-                  className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 py-3 first:pt-3 last:pb-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{app.name}</p>
                     {app.path ? (
-                      <p className="truncate text-xs text-[var(--muted)]">{app.path}</p>
+                      <p className="truncate font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+                        {app.path}
+                      </p>
                     ) : null}
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -264,7 +284,7 @@ export default function AppsPage() {
                       onClick={() => void openApp(app.name)}
                     >
                       <Play className="h-3.5 w-3.5" />
-                      Open
+                      Focus
                     </Button>
                     <Button
                       type="button"
@@ -280,14 +300,14 @@ export default function AppsPage() {
                 </li>
               ))
             ) : (
-              <li className="py-8 text-center text-sm text-[var(--muted)]">
+              <li className="py-10 text-center text-sm text-[var(--muted)]">
                 {online
                   ? "Press Refresh to load running applications."
                   : "Connect an online device to manage apps."}
               </li>
             )}
           </ul>
-        </section>
+        </Card>
       </div>
     </AppShell>
   );

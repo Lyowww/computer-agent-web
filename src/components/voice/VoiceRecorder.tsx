@@ -72,7 +72,7 @@ export function VoiceRecorderButton({
         {busy ? "Transcribing…" : recording ? "Stop" : "Voice"}
       </Button>
       {error ? (
-        <p className="absolute left-0 top-full z-10 mt-1 w-56 rounded-lg bg-rose-50 px-2 py-1 text-xs text-rose-700">
+        <p className="absolute left-0 top-full z-10 mt-1 w-56 rounded-lg border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-[var(--danger-soft)] px-2 py-1 text-xs text-[var(--danger)]">
           {error}
         </p>
       ) : null}

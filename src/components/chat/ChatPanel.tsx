@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AppWindow, Cpu } from "lucide-react";
+import { AppWindow, Cpu, PanelRightOpen } from "lucide-react";
 import { listDevices } from "@/lib/api/devices";
 import { cancelTask } from "@/lib/api/tasks";
 import { getChatHistory } from "@/lib/api/chat";
 import { synthesizeSpeech } from "@/lib/api/voice";
 import { playAudioBlob } from "@/lib/voice/recorder";
 import { agentSocket } from "@/lib/ws/client";
-import { createRequestId } from "@/lib/utils/format";
+import { createRequestId, formatRelativeTime } from "@/lib/utils/format";
 import { useChatStore } from "@/stores/chatStore";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatComposer } from "@/components/chat/ChatComposer";
@@ -21,6 +21,10 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { PhaseBadge } from "@/components/ui/PhaseBadge";
 import { StatusDot } from "@/components/ui/StatusDot";
+import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
 
 export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
@@ -51,6 +55,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     prependHistory,
   } = useChatStore();
 
+  const { toast } = useToast();
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
   const [cameraBusy, setCameraBusy] = useState(false);
@@ -58,6 +63,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [dismissedShotId, setDismissedShotId] = useState<string | null>(null);
   const [dismissedCameraId, setDismissedCameraId] = useState<string | null>(null);
+  const [hudOpen, setHudOpen] = useState(false);
 
   useEffect(() => {
     if (initialDeviceId) setSelectedDeviceId(initialDeviceId);
@@ -120,6 +126,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           deviceId: selectedDeviceId,
         });
         appendLocalSystemMessage("Notification delivered to desktop.");
+        toast("Notification sent", "success");
       } catch (err) {
         setLastError(err instanceof Error ? err.message : "Failed to notify device");
       }
@@ -161,6 +168,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         deviceId: selectedDeviceId,
         taskId: aiEnabled && activeTaskId ? activeTaskId : undefined,
       });
+      toast("Screen capture requested", "info");
       if (aiEnabled && activeTaskId) {
         pushProgress("Taking screenshot...");
         setPhase("waiting_for_screenshot");
@@ -185,6 +193,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         quality: 85,
         deviceId: selectedDeviceId,
       });
+      toast("Camera capture requested", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Front camera capture failed");
     } finally {
@@ -205,6 +214,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         deviceId: selectedDeviceId,
       });
       appendLocalSystemMessage("Lock screen requested.");
+      toast("Device locked", "success");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to lock screen");
     } finally {
@@ -225,6 +235,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         deviceId: selectedDeviceId,
       });
       appendLocalSystemMessage("Unlock requested.");
+      toast("Unlock requested", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to unlock screen");
     } finally {
@@ -250,6 +261,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
       const approval = `Approved: ${pendingConfirmation.message}`;
       await handleSend(approval);
       setPendingConfirmation(null);
+      toast("Action approved", "success");
     } finally {
       setConfirmBusy(false);
     }
@@ -266,6 +278,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
       setPendingConfirmation(null);
       setPhase("failed");
       pushProgress("Cancelled by user.", "error");
+      toast("Action rejected", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Could not cancel");
     } finally {
@@ -291,39 +304,92 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
   const mobileCameraOpen =
     !!latestCamera && latestCamera.requestId !== dismissedCameraId;
 
+  const hudContent = (
+    <div className="space-y-4">
+      {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
+      {aiEnabled ? <ActionList actions={plannedActions} /> : null}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Screen
+          </p>
+          {latestScreenshot ? (
+            <span className="text-[11px] text-[var(--muted)]">
+              {formatRelativeTime(latestScreenshot.receivedAt)}
+            </span>
+          ) : null}
+        </div>
+        <ScreenshotViewer
+          frame={
+            latestScreenshot
+              ? {
+                  ...latestScreenshot,
+                  deviceName: selectedDevice?.name,
+                }
+              : null
+          }
+          deviceName={selectedDevice?.name}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Front camera
+          </p>
+          {latestCamera ? (
+            <span className="text-[11px] text-[var(--muted)]">
+              {formatRelativeTime(latestCamera.receivedAt)}
+            </span>
+          ) : null}
+        </div>
+        <ScreenshotViewer frame={latestCamera} deviceName="Front camera" />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)] lg:gap-4">
+    <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.9fr)] lg:gap-4">
       <section className="flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[var(--panel)]/90 shadow-sm backdrop-blur md:rounded-2xl md:border">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="min-w-0">
             <h1 className="font-[family-name:var(--font-display)] text-xl tracking-tight sm:text-2xl">
-              Chat
+              AI Control
             </h1>
             <p className="hidden text-sm text-[var(--muted)] sm:block">
-              Notify or run AI actions — manage apps on the Apps page
+              Notify or run AI actions — manage apps on App Center
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <PhaseBadge phase={phase} />
+            <Button
+              size="sm"
+              variant="outline"
+              className="lg:hidden"
+              onClick={() => setHudOpen(true)}
+            >
+              <PanelRightOpen className="h-3.5 w-3.5" />
+              HUD
+            </Button>
             <Link
-              href="/apps"
-              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
+              href="/apps/"
+              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
             >
               <AppWindow className="h-3.5 w-3.5" />
               Apps
             </Link>
             <Link
-              href="/processes"
-              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
+              href="/processes/"
+              className="hidden items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--fg)] sm:inline-flex"
             >
               <Cpu className="h-3.5 w-3.5" />
               Processes
             </Link>
-            <label className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/70 px-2.5 py-1.5 text-[11px] sm:gap-2 sm:px-3 sm:text-xs">
+            <label className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1.5 text-[11px] sm:gap-2 sm:px-3 sm:text-xs">
               <input
                 type="checkbox"
                 checked={ttsEnabled}
                 onChange={(e) => setTtsEnabled(e.target.checked)}
+                className="accent-[var(--accent)]"
               />
               Speak
             </label>
@@ -338,7 +404,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-base sm:text-sm"
+              className="select-field flex-1"
             >
               <option value="" disabled>
                 Select device
@@ -352,6 +418,17 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
             {selectedDevice ? <StatusDot status={selectedDevice.connectionStatus} /> : null}
           </div>
         </div>
+
+        {phase === "waiting_for_user" && pendingConfirmation ? (
+          <div className="shrink-0 border-b border-amber-500/30 bg-[var(--warning-soft)] px-3 py-3 sm:px-4">
+            <Badge tone="warning" pulse>
+              Waiting for your approval
+            </Badge>
+            <p className="mt-2 text-sm text-[var(--fg)]">
+              {pendingConfirmation.message}
+            </p>
+          </div>
+        ) : null}
 
         {lastError ? (
           <div className="shrink-0 px-3 pt-2 sm:px-4 sm:pt-3">
@@ -381,38 +458,11 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
       </section>
 
       <aside className="hidden min-h-0 flex-col gap-4 overflow-y-auto lg:flex">
-        {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
-        {aiEnabled ? <ActionList actions={plannedActions} /> : null}
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            Screen
-          </p>
-          <ScreenshotViewer
-            frame={
-              latestScreenshot
-                ? {
-                    ...latestScreenshot,
-                    deviceName: selectedDevice?.name,
-                  }
-                : null
-            }
-            deviceName={selectedDevice?.name}
-          />
-        </div>
-        <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            Front camera
-          </p>
-          <ScreenshotViewer
-            frame={latestCamera}
-            deviceName="Front camera"
-          />
-        </div>
+        {hudContent}
       </aside>
 
-      {/* Mobile: collapsible media sheets */}
       {(latestScreenshot || latestCamera) ? (
-        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 space-y-2 px-3 lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 space-y-2 px-3 lg:hidden">
           {latestCamera ? (
             mobileCameraOpen ? (
               <div className="max-h-[36vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-xl">
@@ -459,12 +509,9 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         </div>
       ) : null}
 
-      <aside className="hidden space-y-3 px-3 pb-2 lg:hidden">
-        {aiEnabled && progressSteps.length ? (
-          <TaskProgress steps={progressSteps} phase={phase} />
-        ) : null}
-        {aiEnabled && plannedActions.length ? <ActionList actions={plannedActions} /> : null}
-      </aside>
+      <Sheet open={hudOpen} onClose={() => setHudOpen(false)} title="Device HUD">
+        {hudContent}
+      </Sheet>
 
       <ConfirmDialog
         open={!!pendingConfirmation}
@@ -475,7 +522,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
             : ""
         }
         confirmLabel="Approve"
-        cancelLabel="Cancel"
+        cancelLabel="Reject"
         busy={confirmBusy}
         onConfirm={() => void approveDangerous()}
         onCancel={() => void rejectDangerous()}

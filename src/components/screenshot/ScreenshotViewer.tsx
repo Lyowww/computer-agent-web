@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import type { ScreenFrame } from "@/lib/types";
-import { formatTimestamp } from "@/lib/utils/format";
+import { formatRelativeTime, formatTimestamp } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 
 export function ScreenshotViewer({
@@ -50,7 +50,7 @@ export function ScreenshotViewer({
   if (!frame || !src) {
     return (
       <div
-        className={`flex items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-white/50 text-sm text-[var(--muted)] ${
+        className={`flex items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--panel-elevated)]/50 text-sm text-[var(--muted)] ${
           compact ? "h-32" : "h-40 sm:h-64"
         }`}
       >
@@ -62,7 +62,7 @@ export function ScreenshotViewer({
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-2xl border border-[var(--border)] bg-slate-950 text-white"
+      className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[#0a0f18] text-white"
     >
       <div className="flex items-center justify-between gap-2 border-b border-white/10 px-2.5 py-1.5 sm:px-3 sm:py-2">
         <div className="min-w-0 flex-1">
@@ -70,7 +70,12 @@ export function ScreenshotViewer({
             {deviceName || frame.deviceName || "Device screenshot"}
           </p>
           <p className="truncate text-[10px] text-white/60 sm:text-xs">
-            {formatTimestamp(frame.receivedAt)} · {frame.width}×{frame.height}
+            Updated {formatRelativeTime(frame.receivedAt)} · {frame.width}×
+            {frame.height}
+            <span className="hidden sm:inline">
+              {" "}
+              · {formatTimestamp(frame.receivedAt)}
+            </span>
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">

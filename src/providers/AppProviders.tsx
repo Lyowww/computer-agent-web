@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AuthHydrator } from "@/providers/AuthHydrator";
 import { WebsocketProvider } from "@/providers/WebsocketProvider";
+import { ToastProvider } from "@/components/ui/Toast";
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -22,7 +23,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <AuthHydrator>
-        <WebsocketProvider>{children}</WebsocketProvider>
+        <WebsocketProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </WebsocketProvider>
       </AuthHydrator>
     </QueryClientProvider>
   );

@@ -2,17 +2,22 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Radio, MonitorSmartphone, Activity } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { DeviceCard } from "@/components/devices/DeviceCard";
 import { ScreenshotViewer } from "@/components/screenshot/ScreenshotViewer";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
-import { Spinner } from "@/components/ui/Spinner";
+import { DeviceCardSkeleton } from "@/components/ui/Skeleton";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
 import { listDevices } from "@/lib/api/devices";
 import { listTasks } from "@/lib/api/tasks";
 import { agentSocket } from "@/lib/ws/client";
-import { createRequestId } from "@/lib/utils/format";
+import { createRequestId, formatRelativeTime } from "@/lib/utils/format";
 import { useChatStore } from "@/stores/chatStore";
+import { useToast } from "@/components/ui/Toast";
 import type { Device } from "@/lib/types";
+import { cn } from "@/lib/utils/cn";
 
 export default function DashboardPage() {
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
@@ -22,10 +27,12 @@ export default function DashboardPage() {
   const setLastError = useChatStore((s) => s.setLastError);
   const lastError = useChatStore((s) => s.lastError);
   const wsConnected = useChatStore((s) => s.wsConnected);
+  const { toast } = useToast();
   const [screenshotBusy, setScreenshotBusy] = useState(false);
   const [cameraBusy, setCameraBusy] = useState(false);
   const [lockBusy, setLockBusy] = useState<"lock" | "unlock" | null>(null);
   const [lockTarget, setLockTarget] = useState<string | null>(null);
+  const [mediaTab, setMediaTab] = useState<"screen" | "camera">("screen");
 
   const devicesWithTasks: Device[] = useMemo(() => {
     const tasks = tasksQuery.data ?? [];
@@ -41,6 +48,9 @@ export default function DashboardPage() {
   }, [devicesQuery.data, tasksQuery.data]);
 
   const onlineCount = devicesWithTasks.filter((d) => d.connectionStatus === "ONLINE").length;
+  const runningTasks = (tasksQuery.data ?? []).filter(
+    (t) => !["COMPLETED", "FAILED", "CANCELLED"].includes(t.status),
+  ).length;
 
   async function takeScreenshot(deviceId?: string) {
     if (!wsConnected) {
@@ -54,6 +64,8 @@ export default function DashboardPage() {
         quality: 80,
         deviceId,
       });
+      toast("Screen capture requested", "info");
+      setMediaTab("screen");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Screenshot failed");
     } finally {
@@ -73,6 +85,8 @@ export default function DashboardPage() {
         quality: 85,
         deviceId,
       });
+      toast("Camera capture requested", "info");
+      setMediaTab("camera");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Front camera capture failed");
     } finally {
@@ -93,6 +107,7 @@ export default function DashboardPage() {
         requestId: createRequestId("lock"),
         deviceId,
       });
+      toast("Device locked", "success");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to lock screen");
     } finally {
@@ -114,6 +129,7 @@ export default function DashboardPage() {
         requestId: createRequestId("unlock"),
         deviceId,
       });
+      toast("Unlock requested", "info");
     } catch (err) {
       setLastError(err instanceof Error ? err.message : "Failed to unlock screen");
     } finally {
@@ -122,30 +138,69 @@ export default function DashboardPage() {
     }
   }
 
+  const metrics = [
+    {
+      label: "Total devices",
+      value: devicesWithTasks.length,
+      icon: MonitorSmartphone,
+    },
+    {
+      label: "Online",
+      value: onlineCount,
+      icon: Radio,
+    },
+    {
+      label: "Running tasks",
+      value: runningTasks,
+      icon: Activity,
+    },
+  ];
+
   return (
     <AppShell>
       <div className="space-y-4 sm:space-y-6">
-        <header className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
             <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl md:text-4xl">
               Dashboard
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)] sm:text-base">
-              {onlineCount} online · {devicesWithTasks.length} devices
+              Live fleet overview and media feed
             </p>
           </div>
-          <p className="w-fit rounded-xl border border-[var(--border)] bg-white/70 px-3 py-2 text-sm">
+          <Badge tone={wsConnected ? "success" : "warning"} pulse={wsConnected}>
             {wsConnected ? "Realtime connected" : "Connecting…"}
-          </p>
+          </Badge>
         </header>
+
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {metrics.map((m) => {
+            const Icon = m.icon;
+            return (
+              <Card key={m.label} padding="sm" className="min-w-0">
+                <div className="flex items-center gap-2 text-[var(--muted)]">
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate text-[10px] uppercase tracking-wide sm:text-xs">
+                    {m.label}
+                  </span>
+                </div>
+                <p className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+                  {m.value}
+                </p>
+              </Card>
+            );
+          })}
+        </div>
 
         {lastError ? (
           <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
         ) : null}
 
         {devicesQuery.isLoading ? (
-          <div className="flex items-center gap-2 text-[var(--muted)]">
-            <Spinner /> Loading devices…
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+            <DeviceCardSkeleton />
+            <DeviceCardSkeleton />
+            <DeviceCardSkeleton />
           </div>
         ) : devicesQuery.isError ? (
           <ErrorBanner
@@ -156,12 +211,12 @@ export default function DashboardPage() {
             }
           />
         ) : devicesWithTasks.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--border)] bg-white/60 p-6 text-center sm:p-8">
+          <Card className="border-dashed text-center" padding="lg">
             <p className="font-medium">No devices yet</p>
             <p className="mt-1 text-sm text-[var(--muted)]">
               Register a desktop agent from the Devices page.
             </p>
-          </div>
+          </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {devicesWithTasks.map((device) => (
@@ -181,13 +236,42 @@ export default function DashboardPage() {
         )}
 
         <section className="space-y-3">
-          <h2 className="text-base font-semibold sm:text-lg">Latest screenshot</h2>
-          <ScreenshotViewer frame={latestScreenshot} />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="text-base font-semibold sm:text-lg">Latest front camera</h2>
-          <ScreenshotViewer frame={latestCamera} deviceName="Front camera" />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold sm:text-lg">Recent media</h2>
+            <div className="flex rounded-xl border border-[var(--border)] bg-[var(--panel)] p-1">
+              {(
+                [
+                  ["screen", "Screen"],
+                  ["camera", "Camera"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setMediaTab(id)}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                    mediaTab === id
+                      ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                      : "text-[var(--muted)] hover:text-[var(--fg)]",
+                  )}
+                >
+                  {label}
+                  {id === "screen" && latestScreenshot
+                    ? ` · ${formatRelativeTime(latestScreenshot.receivedAt)}`
+                    : null}
+                  {id === "camera" && latestCamera
+                    ? ` · ${formatRelativeTime(latestCamera.receivedAt)}`
+                    : null}
+                </button>
+              ))}
+            </div>
+          </div>
+          {mediaTab === "screen" ? (
+            <ScreenshotViewer frame={latestScreenshot} />
+          ) : (
+            <ScreenshotViewer frame={latestCamera} deviceName="Front camera" />
+          )}
         </section>
       </div>
     </AppShell>
