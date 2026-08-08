@@ -116,11 +116,15 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       },
       onScreenResult: (payload) => {
         const s = useChatStore.getState();
+        if (payload.error || !payload.image) {
+          if (payload.error) s.setLastError(payload.error);
+          return;
+        }
         s.setScreenshot({
           requestId: payload.requestId,
           taskId: payload.taskId,
-          width: payload.width,
-          height: payload.height,
+          width: payload.width ?? 0,
+          height: payload.height ?? 0,
           image: payload.image,
           mimeType: payload.mimeType || "image/png",
           receivedAt: new Date().toISOString(),
@@ -130,7 +134,23 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         } else if (s.phase === "waiting_for_screenshot") {
           s.setPhase("idle");
         }
-        // No chat spam for screenshots — viewer panel shows the frame.
+      },
+      onCameraResult: (payload) => {
+        const s = useChatStore.getState();
+        if (payload.error || !payload.image) {
+          s.setLastError(payload.error || "Camera capture failed");
+          return;
+        }
+        s.setCameraShot({
+          requestId: payload.requestId,
+          taskId: payload.taskId,
+          width: payload.width ?? 0,
+          height: payload.height ?? 0,
+          image: payload.image,
+          mimeType: payload.mimeType || "image/jpeg",
+          receivedAt: new Date().toISOString(),
+          deviceName: "Front camera",
+        });
       },
       onProcessesResult: (payload) => {
         const s = useChatStore.getState();

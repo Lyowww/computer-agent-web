@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Send, StopCircle, Bell, Bot, Lock, Unlock } from "lucide-react";
+import { Camera, Send, StopCircle, Bell, Bot, Lock, Unlock, Video } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorder";
 
@@ -14,6 +14,8 @@ export function ChatComposer({
   onCancel,
   onScreenshot,
   screenshotBusy,
+  onCamera,
+  cameraBusy,
   onLock,
   onUnlock,
   lockBusy,
@@ -26,6 +28,8 @@ export function ChatComposer({
   onCancel?: () => void;
   onScreenshot?: () => void;
   screenshotBusy?: boolean;
+  onCamera?: () => void;
+  cameraBusy?: boolean;
   onLock?: () => void;
   onUnlock?: () => void;
   lockBusy?: "lock" | "unlock" | null;
@@ -45,6 +49,8 @@ export function ChatComposer({
       setSending(false);
     }
   }
+
+  const mediaBusy = screenshotBusy || cameraBusy || !!lockBusy;
 
   return (
     <form
@@ -69,19 +75,31 @@ export function ChatComposer({
           type="button"
           size="sm"
           variant="outline"
-          disabled={disabled || screenshotBusy || !!lockBusy}
+          disabled={disabled || mediaBusy}
           onClick={onScreenshot}
           className="px-2.5 sm:px-3"
           aria-label="Screenshot"
         >
           <Camera className="h-4 w-4" />
-          <span className="hidden sm:inline">Screenshot</span>
+          <span className="hidden sm:inline">Screen</span>
         </Button>
         <Button
           type="button"
           size="sm"
           variant="outline"
-          disabled={disabled || !!lockBusy || screenshotBusy}
+          disabled={disabled || mediaBusy}
+          onClick={onCamera}
+          className="px-2.5 sm:px-3"
+          aria-label="Front camera"
+        >
+          <Video className={`h-4 w-4 ${cameraBusy ? "animate-pulse" : ""}`} />
+          <span className="hidden sm:inline">Camera</span>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled || mediaBusy}
           onClick={onLock}
           className="px-2.5 sm:px-3"
           aria-label="Lock screen"
@@ -93,7 +111,7 @@ export function ChatComposer({
           type="button"
           size="sm"
           variant="outline"
-          disabled={disabled || !!lockBusy || screenshotBusy}
+          disabled={disabled || mediaBusy}
           onClick={onUnlock}
           className="px-2.5 sm:px-3"
           aria-label="Unlock screen"
@@ -136,7 +154,7 @@ export function ChatComposer({
       <p className="mt-2 hidden text-xs text-[var(--muted)] sm:block">
         {aiEnabled
           ? "AI on: messages create tasks and can execute actions on the device."
-          : "AI off: messages are delivered as desktop notifications only. Screenshots still work."}
+          : "AI off: messages are delivered as desktop notifications only. Screen and camera still work."}
       </p>
     </form>
   );

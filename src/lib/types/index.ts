@@ -156,7 +156,9 @@ export type WsEventName =
   | "APP_ACTION_RESULT"
   | "LOCK_SCREEN"
   | "UNLOCK_SCREEN"
-  | "LOCK_RESULT";
+  | "LOCK_RESULT"
+  | "CAPTURE_CAMERA"
+  | "CAMERA_RESULT";
 
 export interface DeviceStatusPayload {
   deviceId: string;
@@ -251,10 +253,11 @@ export interface AiResponsePayload {
 export interface ScreenResultPayload {
   requestId: string;
   taskId?: string;
-  width: number;
-  height: number;
-  image: string;
+  width?: number;
+  height?: number;
+  image?: string;
   mimeType?: string;
+  error?: string;
 }
 
 export interface ErrorPayload {

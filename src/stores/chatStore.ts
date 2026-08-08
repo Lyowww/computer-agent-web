@@ -23,6 +23,7 @@ interface ChatState {
   processes: ProcessInfo[];
   apps: AppInfo[];
   latestScreenshot: ScreenFrame | null;
+  latestCamera: ScreenFrame | null;
   screenshots: ScreenFrame[];
   pendingConfirmation: PendingUserConfirmation | null;
   lastError: string | null;
@@ -50,6 +51,7 @@ interface ChatState {
   setProcesses: (processes: ProcessInfo[]) => void;
   setApps: (apps: AppInfo[]) => void;
   setScreenshot: (frame: ScreenFrame) => void;
+  setCameraShot: (frame: ScreenFrame) => void;
   setPendingConfirmation: (value: PendingUserConfirmation | null) => void;
   setLastError: (error: string | null) => void;
   appendLocalUserMessage: (content: string, taskId?: string | null) => ChatMessage;
@@ -90,6 +92,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   processes: [],
   apps: [],
   latestScreenshot: null,
+  latestCamera: null,
   screenshots: [],
   pendingConfirmation: null,
   lastError: null,
@@ -234,6 +237,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       latestScreenshot: frame,
       screenshots: [frame, ...state.screenshots].slice(0, 20),
     })),
+
+  setCameraShot: (frame) => set({ latestCamera: frame }),
 
   setPendingConfirmation: (value) => set({ pendingConfirmation: value }),
   setLastError: (error) => set({ lastError: error }),

@@ -34,6 +34,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     activeTaskId,
     activeTaskStatus,
     latestScreenshot,
+    latestCamera,
     pendingConfirmation,
     lastError,
     wsConnected,
@@ -52,9 +53,11 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
+  const [cameraBusy, setCameraBusy] = useState(false);
   const [lockBusy, setLockBusy] = useState<"lock" | "unlock" | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [dismissedShotId, setDismissedShotId] = useState<string | null>(null);
+  const [dismissedCameraId, setDismissedCameraId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialDeviceId) setSelectedDeviceId(initialDeviceId);
@@ -169,6 +172,26 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     }
   }
 
+  async function handleCamera() {
+    if (!wsConnected || !selectedDeviceId) {
+      setLastError("Select an online device first.");
+      return;
+    }
+    setCameraBusy(true);
+    setLastError(null);
+    try {
+      await agentSocket.emitCaptureCamera({
+        requestId: createRequestId("camera"),
+        quality: 85,
+        deviceId: selectedDeviceId,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Front camera capture failed");
+    } finally {
+      setCameraBusy(false);
+    }
+  }
+
   async function handleLock() {
     if (!wsConnected || !selectedDeviceId) {
       setLastError("Select an online device first.");
@@ -265,6 +288,8 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   const mobileShotOpen =
     !!latestScreenshot && latestScreenshot.requestId !== dismissedShotId;
+  const mobileCameraOpen =
+    !!latestCamera && latestCamera.requestId !== dismissedCameraId;
 
   return (
     <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)] lg:gap-4">
@@ -347,6 +372,8 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           onCancel={() => void handleCancel()}
           onScreenshot={() => void handleScreenshot()}
           screenshotBusy={screenshotBusy}
+          onCamera={() => void handleCamera()}
+          cameraBusy={cameraBusy}
           onLock={() => void handleLock()}
           onUnlock={() => void handleUnlock()}
           lockBusy={lockBusy}
@@ -356,43 +383,79 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
       <aside className="hidden min-h-0 flex-col gap-4 overflow-y-auto lg:flex">
         {aiEnabled ? <TaskProgress steps={progressSteps} phase={phase} /> : null}
         {aiEnabled ? <ActionList actions={plannedActions} /> : null}
-        <ScreenshotViewer
-          frame={
-            latestScreenshot
-              ? {
-                  ...latestScreenshot,
-                  deviceName: selectedDevice?.name,
-                }
-              : null
-          }
-          deviceName={selectedDevice?.name}
-        />
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Screen
+          </p>
+          <ScreenshotViewer
+            frame={
+              latestScreenshot
+                ? {
+                    ...latestScreenshot,
+                    deviceName: selectedDevice?.name,
+                  }
+                : null
+            }
+            deviceName={selectedDevice?.name}
+          />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Front camera
+          </p>
+          <ScreenshotViewer
+            frame={latestCamera}
+            deviceName="Front camera"
+          />
+        </div>
       </aside>
 
-      {/* Mobile: collapsible screenshot sheet — doesn't steal chat height */}
-      {latestScreenshot ? (
-        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 px-3 lg:hidden">
-          {mobileShotOpen ? (
-            <div className="max-h-[42vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-xl">
-              <ScreenshotViewer
-                compact
-                frame={{
-                  ...latestScreenshot,
-                  deviceName: selectedDevice?.name,
-                }}
-                deviceName={selectedDevice?.name}
-                onClose={() => setDismissedShotId(latestScreenshot.requestId)}
-              />
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setDismissedShotId(null)}
-              className="mb-2 w-full rounded-xl border border-[var(--border)] bg-[var(--panel)]/95 px-3 py-2 text-left text-sm font-medium shadow-md backdrop-blur"
-            >
-              Show latest screenshot
-            </button>
-          )}
+      {/* Mobile: collapsible media sheets */}
+      {(latestScreenshot || latestCamera) ? (
+        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 space-y-2 px-3 lg:hidden">
+          {latestCamera ? (
+            mobileCameraOpen ? (
+              <div className="max-h-[36vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-xl">
+                <ScreenshotViewer
+                  compact
+                  frame={latestCamera}
+                  deviceName="Front camera"
+                  onClose={() => setDismissedCameraId(latestCamera.requestId)}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDismissedCameraId(null)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--panel)]/95 px-3 py-2 text-left text-sm font-medium shadow-md backdrop-blur"
+              >
+                Show front camera shot
+              </button>
+            )
+          ) : null}
+          {latestScreenshot ? (
+            mobileShotOpen ? (
+              <div className="max-h-[36vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-xl">
+                <ScreenshotViewer
+                  compact
+                  frame={{
+                    ...latestScreenshot,
+                    deviceName: selectedDevice?.name,
+                  }}
+                  deviceName={selectedDevice?.name}
+                  onClose={() => setDismissedShotId(latestScreenshot.requestId)}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDismissedShotId(null)}
+                className="mb-2 w-full rounded-xl border border-[var(--border)] bg-[var(--panel)]/95 px-3 py-2 text-left text-sm font-medium shadow-md backdrop-blur"
+              >
+                Show latest screenshot
+              </button>
+            )
+          ) : null}
         </div>
       ) : null}
 

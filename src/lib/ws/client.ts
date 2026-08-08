@@ -20,6 +20,7 @@ export type WsHandlers = {
   onDisconnect?: (reason: string) => void;
   onDeviceStatus?: (payload: DeviceStatusPayload) => void;
   onScreenResult?: (payload: ScreenResultPayload) => void;
+  onCameraResult?: (payload: ScreenResultPayload) => void;
   onTaskStart?: (payload: TaskStartPayload) => void;
   onTaskUpdate?: (payload: TaskUpdatePayload) => void;
   onTaskCompleted?: (payload: TaskTerminalPayload) => void;
@@ -118,6 +119,9 @@ export class AgentSocket {
         case "SCREEN_RESULT":
           handlers.onScreenResult?.(payload as ScreenResultPayload);
           break;
+        case "CAMERA_RESULT":
+          handlers.onCameraResult?.(payload as ScreenResultPayload);
+          break;
         case "TASK_START":
           handlers.onTaskStart?.(payload as TaskStartPayload);
           break;
@@ -162,6 +166,7 @@ export class AgentSocket {
     const named = [
       "DEVICE_STATUS",
       "SCREEN_RESULT",
+      "CAMERA_RESULT",
       "TASK_START",
       "TASK_UPDATE",
       "TASK_COMPLETED",
@@ -218,6 +223,15 @@ export class AgentSocket {
     deviceId?: string;
   }): Promise<unknown> {
     return this.emitAndWaitForResult("CAPTURE_SCREEN", payload, "SCREEN_RESULT", 25000);
+  }
+
+  emitCaptureCamera(payload: {
+    requestId: string;
+    quality?: number;
+    taskId?: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAndWaitForResult("CAPTURE_CAMERA", payload, "CAMERA_RESULT", 30000);
   }
 
   emitNotify(payload: {

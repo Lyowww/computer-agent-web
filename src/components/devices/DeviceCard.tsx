@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Camera, Copy, MessageSquare, RefreshCw } from "lucide-react";
+import { Camera, Copy, MessageSquare, RefreshCw, Video } from "lucide-react";
 import type { Device } from "@/lib/types";
 import { formatOs, formatRelativeTime, taskStatusToPhase } from "@/lib/utils/format";
 import { StatusDot } from "@/components/ui/StatusDot";
@@ -14,6 +14,8 @@ export function DeviceCard({
   device,
   onScreenshot,
   screenshotBusy,
+  onCamera,
+  cameraBusy,
   onRegenerateToken,
   regenerateBusy,
   onLock,
@@ -23,6 +25,8 @@ export function DeviceCard({
   device: Device;
   onScreenshot?: (deviceId: string) => void;
   screenshotBusy?: boolean;
+  onCamera?: (deviceId: string) => void;
+  cameraBusy?: boolean;
   onRegenerateToken?: (deviceId: string) => void;
   regenerateBusy?: boolean;
   onLock?: (deviceId: string) => void;
@@ -32,6 +36,7 @@ export function DeviceCard({
   const active = device.activeTask;
   const [copied, setCopied] = useState(false);
   const online = device.connectionStatus === "ONLINE";
+  const mediaBusy = screenshotBusy || cameraBusy || !!lockBusy;
 
   async function copyToken() {
     if (!device.deviceToken) return;
@@ -109,8 +114,8 @@ export function DeviceCard({
         )}
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-        <Link href={`/chat?deviceId=${device.id}`} className="sm:contents">
+      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Link href={`/chat?deviceId=${device.id}`} className="sm:col-span-2 sm:contents">
           <Button size="sm" className="w-full sm:w-auto">
             <MessageSquare className="h-4 w-4" />
             Open Chat
@@ -119,19 +124,29 @@ export function DeviceCard({
         <Button
           size="sm"
           variant="outline"
-          className="w-full sm:w-auto"
-          disabled={!online || screenshotBusy || !!lockBusy}
+          className="w-full"
+          disabled={!online || mediaBusy}
           onClick={() => onScreenshot?.(device.id)}
         >
           <Camera className="h-4 w-4" />
-          Screenshot
+          Screen
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full"
+          disabled={!online || mediaBusy || !onCamera}
+          onClick={() => onCamera?.(device.id)}
+        >
+          <Video className="h-4 w-4" />
+          Camera
         </Button>
       </div>
 
       {onLock && onUnlock ? (
         <div className="mt-2">
           <LockControls
-            disabled={!online || screenshotBusy}
+            disabled={!online || mediaBusy}
             busy={lockBusy}
             onLock={() => onLock(device.id)}
             onUnlock={() => onUnlock(device.id)}

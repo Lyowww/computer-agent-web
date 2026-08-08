@@ -18,10 +18,12 @@ export default function DashboardPage() {
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
   const tasksQuery = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
   const latestScreenshot = useChatStore((s) => s.latestScreenshot);
+  const latestCamera = useChatStore((s) => s.latestCamera);
   const setLastError = useChatStore((s) => s.setLastError);
   const lastError = useChatStore((s) => s.lastError);
   const wsConnected = useChatStore((s) => s.wsConnected);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
+  const [cameraBusy, setCameraBusy] = useState(false);
   const [lockBusy, setLockBusy] = useState<"lock" | "unlock" | null>(null);
   const [lockTarget, setLockTarget] = useState<string | null>(null);
 
@@ -56,6 +58,25 @@ export default function DashboardPage() {
       setLastError(err instanceof Error ? err.message : "Screenshot failed");
     } finally {
       setScreenshotBusy(false);
+    }
+  }
+
+  async function takeCamera(deviceId?: string) {
+    if (!wsConnected) {
+      setLastError("Live connection is down.");
+      return;
+    }
+    setCameraBusy(true);
+    try {
+      await agentSocket.emitCaptureCamera({
+        requestId: createRequestId("camera"),
+        quality: 85,
+        deviceId,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Front camera capture failed");
+    } finally {
+      setCameraBusy(false);
     }
   }
 
@@ -148,8 +169,10 @@ export default function DashboardPage() {
                 key={device.id}
                 device={device}
                 screenshotBusy={screenshotBusy}
+                cameraBusy={cameraBusy}
                 lockBusy={lockTarget === device.id ? lockBusy : null}
                 onScreenshot={() => void takeScreenshot(device.id)}
+                onCamera={() => void takeCamera(device.id)}
                 onLock={(id) => void lockDevice(id)}
                 onUnlock={(id) => void unlockDevice(id)}
               />
@@ -160,6 +183,11 @@ export default function DashboardPage() {
         <section className="space-y-3">
           <h2 className="text-base font-semibold sm:text-lg">Latest screenshot</h2>
           <ScreenshotViewer frame={latestScreenshot} />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold sm:text-lg">Latest front camera</h2>
+          <ScreenshotViewer frame={latestCamera} deviceName="Front camera" />
         </section>
       </div>
     </AppShell>
