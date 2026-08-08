@@ -131,6 +131,15 @@ export function formatActionChip(
     return text ? `Type: ${text}` : "Keyboard input";
   }
   if (t.includes("scroll")) {
+    const direction =
+      paramStr(params, "direction") ||
+      (Number(paramStr(params, "deltaY") ?? 0) < 0 ? "up" : null);
+    const amount =
+      paramStr(params, "amount") ||
+      paramStr(params, "deltaY") ||
+      paramStr(params, "dy");
+    if (direction && amount) return `Scroll ${direction}: ${amount}`;
+    if (direction) return `Scroll ${direction}`;
     const dx = paramStr(params, "dx") || paramStr(params, "deltaX") || "0";
     const dy = paramStr(params, "dy") || paramStr(params, "deltaY") || "0";
     return `Scroll: (${dx}, ${dy})`;
