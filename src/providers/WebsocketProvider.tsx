@@ -107,8 +107,8 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           error: payload.error,
         });
         if (payload.success) {
-          s.pushProgress("Verifying...");
-          s.setPhase("verifying");
+          s.pushProgress("Executed");
+          s.setPhase("executing");
         } else {
           s.pushProgress(payload.error || "Action failed", "error");
           s.setPhase("failed");
