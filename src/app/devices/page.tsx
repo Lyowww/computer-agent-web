@@ -59,7 +59,7 @@ export default function DevicesPage() {
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+            <h1 className="font-display text-2xl tracking-tight sm:text-3xl">
               Devices
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
@@ -113,7 +113,14 @@ export default function DevicesPage() {
             </div>
             {!devices.length ? (
               <Card className="border-dashed text-center" padding="lg">
-                <p className="text-sm text-[var(--muted)]">No devices registered yet.</p>
+                <p className="font-display text-xl tracking-tight">No devices connected.</p>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Install the PetAI desktop agent to connect your first computer.
+                </p>
+                <Button className="mt-4" onClick={() => setOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Connect Device
+                </Button>
               </Card>
             ) : null}
           </div>

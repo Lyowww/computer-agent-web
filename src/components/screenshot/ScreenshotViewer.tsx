@@ -50,11 +50,14 @@ export function ScreenshotViewer({
   if (!frame || !src) {
     return (
       <div
-        className={`flex items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--panel-elevated)]/50 text-sm text-[var(--muted)] ${
+        className={`flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--panel-elevated)]/50 text-sm text-[var(--muted)] ${
           compact ? "h-32" : "h-40 sm:h-64"
         }`}
       >
-        No screenshot yet
+        <p>No screenshot yet</p>
+        <p className="text-xs text-[var(--muted-dim)]">
+          Captures are requested on demand
+        </p>
       </div>
     );
   }
@@ -62,14 +65,14 @@ export function ScreenshotViewer({
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[#0a0f18] text-white"
+      className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--fg)]"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-2.5 py-1.5 sm:px-3 sm:py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)] px-2.5 py-1.5 sm:px-3 sm:py-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium sm:text-sm">
             {deviceName || frame.deviceName || "Device screenshot"}
           </p>
-          <p className="truncate text-[10px] text-white/60 sm:text-xs">
+          <p className="truncate text-[10px] text-[var(--muted)] sm:text-xs">
             Updated {formatRelativeTime(frame.receivedAt)} · {frame.width}×
             {frame.height}
             <span className="hidden sm:inline">
@@ -82,7 +85,7 @@ export function ScreenshotViewer({
           <Button
             size="sm"
             variant="ghost"
-            className="px-1.5 text-white hover:bg-white/10 sm:px-2"
+            className="px-1.5 text-[var(--muted)] hover:bg-[var(--accent-soft)] sm:px-2"
             onClick={() => {
               setFit(true);
               setZoom(1);
@@ -94,7 +97,7 @@ export function ScreenshotViewer({
           <Button
             size="sm"
             variant="ghost"
-            className="hidden px-1.5 text-white hover:bg-white/10 sm:inline-flex sm:px-2"
+            className="hidden px-1.5 text-[var(--muted)] hover:bg-[var(--accent-soft)] sm:inline-flex sm:px-2"
             onClick={() => {
               setFit(false);
               setZoom((z) => Math.max(0.5, Number((z - 0.25).toFixed(2))));
@@ -103,13 +106,13 @@ export function ScreenshotViewer({
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="hidden px-1 text-[10px] text-white/70 sm:inline sm:text-xs">
+          <span className="hidden px-1 text-[10px] text-[var(--muted)] sm:inline sm:text-xs">
             {Math.round(zoom * 100)}%
           </span>
           <Button
             size="sm"
             variant="ghost"
-            className="hidden px-1.5 text-white hover:bg-white/10 sm:inline-flex sm:px-2"
+            className="hidden px-1.5 text-[var(--muted)] hover:bg-[var(--accent-soft)] sm:inline-flex sm:px-2"
             onClick={() => {
               setFit(false);
               setZoom((z) => Math.min(3, Number((z + 0.25).toFixed(2))));
@@ -121,7 +124,7 @@ export function ScreenshotViewer({
           <Button
             size="sm"
             variant="ghost"
-            className="px-1.5 text-white hover:bg-white/10 sm:px-2"
+            className="px-1.5 text-[var(--muted)] hover:bg-[var(--accent-soft)] sm:px-2"
             onClick={() => void toggleFullscreen()}
             aria-label="Fullscreen"
           >
@@ -131,7 +134,7 @@ export function ScreenshotViewer({
             <Button
               size="sm"
               variant="ghost"
-              className="px-1.5 text-white hover:bg-white/10 sm:px-2"
+              className="px-1.5 text-[var(--muted)] hover:bg-[var(--accent-soft)] sm:px-2"
               onClick={onClose}
               aria-label="Close"
             >

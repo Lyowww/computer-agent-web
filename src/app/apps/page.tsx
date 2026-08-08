@@ -161,24 +161,24 @@ export default function AppsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-4 sm:space-y-5">
-        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <div className="min-w-0">
+      <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
             <p className="inline-flex items-center gap-2 text-sm text-[var(--muted)]">
-              <AppWindow className="h-4 w-4" />
+              <AppWindow className="h-4 w-4 shrink-0" />
               Device control
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+            <h1 className="mt-1 font-display text-2xl tracking-tight sm:text-3xl lg:text-4xl">
               App Center
             </h1>
-            <p className="mt-1 text-sm text-[var(--muted)]">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)] sm:text-base">
               Launch presets, quit running apps, and lock the selected agent
             </p>
           </div>
           <Button
             type="button"
             variant="outline"
-            className="w-full sm:w-auto"
+            className="w-full shrink-0 sm:w-auto"
             disabled={!online || busy === "refresh"}
             loading={busy === "refresh"}
             onClick={() => void refresh()}
@@ -192,11 +192,11 @@ export default function AppsPage() {
           <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
-          <div className="mt-1 flex items-center gap-2 sm:gap-3">
+          <div className="mt-2 flex min-w-0 items-center gap-3">
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="select-field flex-1"
+              className="select-field min-w-0 flex-1"
             >
               <option value="" disabled>
                 Select device
@@ -207,7 +207,11 @@ export default function AppsPage() {
                 </option>
               ))}
             </select>
-            {selectedDevice ? <StatusDot status={selectedDevice.connectionStatus} /> : null}
+            {selectedDevice ? (
+              <div className="shrink-0">
+                <StatusDot status={selectedDevice.connectionStatus} />
+              </div>
+            ) : null}
           </div>
         </Card>
 
@@ -216,13 +220,13 @@ export default function AppsPage() {
         ) : null}
 
         <Card>
-          <h2 className="text-sm font-semibold">Lock screen</h2>
-          <p className="mt-1 text-xs text-[var(--muted)]">
+          <h2 className="text-base font-semibold">Lock screen</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
             Lock opens the OS lock screen. Unlock types the password saved in the
             desktop agent Settings.
           </p>
           <LockControls
-            className="mt-3 grid grid-cols-2 gap-2 sm:max-w-sm"
+            className="mt-4 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-md"
             disabled={!online}
             busy={busy === "lock" ? "lock" : busy === "unlock" ? "unlock" : null}
             onLock={() => void lockScreen()}
@@ -231,55 +235,56 @@ export default function AppsPage() {
         </Card>
 
         <Card>
-          <h2 className="text-sm font-semibold">Quick launch</h2>
-          <p className="mt-1 text-xs text-[var(--muted)]">
+          <h2 className="text-base font-semibold">Quick launch</h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Launch a common app on the device
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
             {QUICK_OPEN.map((app) => (
               <Button
                 key={app}
                 type="button"
-                size="sm"
+                size="md"
                 variant="outline"
-                className="justify-start"
+                className="w-full justify-start"
                 disabled={!online || !!busy}
                 onClick={() => void openApp(app)}
               >
-                <Play className="h-3.5 w-3.5 text-[var(--accent)]" />
-                {app}
+                <Play className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
+                <span className="truncate">{app}</span>
               </Button>
             ))}
           </div>
         </Card>
 
         <Card padding="none">
-          <div className="border-b border-[var(--border)] px-4 py-3 sm:px-5">
-            <h2 className="text-sm font-semibold">Running apps ({apps.length})</h2>
-            <p className="mt-1 text-xs text-[var(--muted)]">
+          <div className="border-b border-[var(--border)] px-4 py-4 sm:px-6">
+            <h2 className="text-base font-semibold">Running apps ({apps.length})</h2>
+            <p className="mt-1.5 text-sm text-[var(--muted)]">
               Focus / reopen an app, or quit it remotely
             </p>
           </div>
-          <ul className="divide-y divide-[var(--border)] px-4 sm:px-5">
+          <ul className="divide-y divide-[var(--border)] px-4 sm:px-6">
             {apps.length ? (
               apps.map((app) => (
                 <li
                   key={app.name}
-                  className="flex flex-col gap-3 py-3 first:pt-3 last:pb-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{app.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium sm:text-base">{app.name}</p>
                     {app.path ? (
-                      <p className="truncate font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+                      <p className="mt-1 truncate font-[family-name:var(--font-mono)] text-xs text-[var(--muted)] sm:text-sm">
                         {app.path}
                       </p>
                     ) : null}
                   </div>
-                  <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0">
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
+                      className="w-full sm:w-auto"
                       disabled={!online || !!busy}
                       onClick={() => void openApp(app.name)}
                     >
@@ -290,6 +295,7 @@ export default function AppsPage() {
                       type="button"
                       size="sm"
                       variant="danger"
+                      className="w-full sm:w-auto"
                       disabled={!online || !!busy}
                       onClick={() => void closeApp(app.name)}
                     >
@@ -300,7 +306,7 @@ export default function AppsPage() {
                 </li>
               ))
             ) : (
-              <li className="py-10 text-center text-sm text-[var(--muted)]">
+              <li className="px-1 py-12 text-center text-sm text-[var(--muted)]">
                 {online
                   ? "Press Refresh to load running applications."
                   : "Connect an online device to manage apps."}

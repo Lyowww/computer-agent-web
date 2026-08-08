@@ -92,119 +92,123 @@ export default function SettingsPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
         <header>
-          <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+          <h1 className="font-display text-2xl tracking-tight sm:text-3xl lg:text-4xl">
             Settings
           </h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)] sm:text-base">
             Account, diagnostics, and agent installation
           </p>
         </header>
 
-        <Card>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
-            Account
-          </h2>
-          <div className="mt-4 flex items-center gap-4">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--accent-soft)] font-[family-name:var(--font-mono)] text-lg font-semibold text-[var(--accent)]">
-              {avatarInitials(profile?.name, profile?.email)}
-            </span>
-            <dl className="min-w-0 flex-1 space-y-2 text-sm">
-              <div>
-                <dt className="text-[var(--muted)]">Name</dt>
-                <dd className="font-medium break-all">{profile?.name || "—"}</dd>
+        <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+          <Card>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Account
+            </h2>
+            <div className="mt-5 flex items-start gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--accent-soft)] font-[family-name:var(--font-mono)] text-lg font-semibold text-[var(--accent)]">
+                {avatarInitials(profile?.name, profile?.email)}
+              </span>
+              <dl className="min-w-0 flex-1 space-y-3 text-sm">
+                <div>
+                  <dt className="text-[var(--muted)]">Name</dt>
+                  <dd className="mt-0.5 break-words font-medium">{profile?.name || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--muted)]">Email</dt>
+                  <dd className="mt-0.5 break-all font-medium">{profile?.email}</dd>
+                </div>
+              </dl>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Connectivity
+                </h2>
+                <p className="mt-1.5 text-sm text-[var(--muted)]">
+                  REST + WebSocket diagnostic suite
+                </p>
               </div>
-              <div>
-                <dt className="text-[var(--muted)]">Email</dt>
-                <dd className="font-medium break-all">{profile?.email}</dd>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full shrink-0 sm:w-auto"
+                loading={pingBusy}
+                onClick={() => void runDiagnostics()}
+              >
+                <Activity className="h-3.5 w-3.5" />
+                Run ping test
+              </Button>
+            </div>
+            <dl className="mt-5 space-y-4 text-sm">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                <dt className="shrink-0 text-[var(--muted)]">API</dt>
+                <dd className="min-w-0 break-all font-[family-name:var(--font-mono)] text-xs sm:text-right">
+                  {getApiBaseUrl()}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <dt className="text-[var(--muted)]">WebSocket</dt>
+                <dd>
+                  <Badge tone={wsConnected ? "success" : "warning"} pulse={wsConnected}>
+                    {wsConnected ? "Connected" : "Disconnected"}
+                  </Badge>
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <dt className="text-[var(--muted)]">Backend health</dt>
+                <dd className="font-medium">
+                  {healthQuery.isLoading
+                    ? "Checking…"
+                    : healthQuery.data?.status || "Unavailable"}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <dt className="text-[var(--muted)]">Last ping</dt>
+                <dd className="font-[family-name:var(--font-mono)] font-medium">
+                  {pingMs !== null ? `${pingMs} ms` : "—"}
+                  {pingError ? (
+                    <span className="ml-2 text-[var(--danger)]">{pingError}</span>
+                  ) : null}
+                </dd>
               </div>
             </dl>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
-                Connectivity
-              </h2>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                REST + WebSocket diagnostic suite
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              loading={pingBusy}
-              onClick={() => void runDiagnostics()}
-            >
-              <Activity className="h-3.5 w-3.5" />
-              Run ping test
-            </Button>
-          </div>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-              <dt className="text-[var(--muted)]">API</dt>
-              <dd className="break-all font-[family-name:var(--font-mono)] text-xs">
-                {getApiBaseUrl()}
-              </dd>
-            </div>
-            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-              <dt className="text-[var(--muted)]">WebSocket</dt>
-              <dd>
-                <Badge tone={wsConnected ? "success" : "warning"} pulse={wsConnected}>
-                  {wsConnected ? "Connected" : "Disconnected"}
-                </Badge>
-              </dd>
-            </div>
-            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-              <dt className="text-[var(--muted)]">Backend health</dt>
-              <dd className="font-medium">
-                {healthQuery.isLoading
-                  ? "Checking…"
-                  : healthQuery.data?.status || "Unavailable"}
-              </dd>
-            </div>
-            <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
-              <dt className="text-[var(--muted)]">Last ping</dt>
-              <dd className="font-[family-name:var(--font-mono)] font-medium">
-                {pingMs !== null ? `${pingMs} ms` : "—"}
-                {pingError ? (
-                  <span className="ml-2 text-[var(--danger)]">{pingError}</span>
-                ) : null}
-              </dd>
-            </div>
-          </dl>
-          {healthQuery.isError ? (
-            <div className="mt-3">
-              <ErrorBanner message="Backend health check failed. Confirm NEXT_PUBLIC_API_URL." />
-            </div>
-          ) : null}
-        </Card>
+            {healthQuery.isError ? (
+              <div className="mt-4">
+                <ErrorBanner message="Backend health check failed. Confirm NEXT_PUBLIC_API_URL." />
+              </div>
+            ) : null}
+          </Card>
+        </div>
 
         <Card>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
             Agent installation
           </h2>
-          <p className="mt-1 text-xs text-[var(--muted)]">
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[var(--muted)]">
             Copy the install script for your OS, then paste the device token from
             Devices → Show Agent Key.
           </p>
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-5 grid gap-3 lg:grid-cols-1 xl:grid-cols-3">
             {INSTALL_SCRIPTS.map((item) => (
               <li
                 key={item.os}
-                className="rounded-xl border border-[var(--border)] bg-[#0a0f18] p-3"
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-4"
               >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-200">
-                    <Terminal className="h-3.5 w-3.5 text-cyan-400" />
-                    {item.os}
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-[var(--fg)]">
+                    <Terminal className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
+                    <span className="truncate">{item.os}</span>
                   </span>
                   <Button
                     size="sm"
                     variant="outline"
+                    className="w-full shrink-0 sm:w-auto"
                     onClick={() => void copyScript(item.os, item.script)}
                   >
                     {copiedOs === item.os ? (
@@ -215,7 +219,7 @@ export default function SettingsPage() {
                     {copiedOs === item.os ? "Copied" : "Copy"}
                   </Button>
                 </div>
-                <pre className="overflow-x-auto whitespace-pre-wrap break-all font-[family-name:var(--font-mono)] text-[11px] text-cyan-300/90">
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-[var(--panel)] px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs leading-relaxed text-[var(--accent-strong)]">
                   {item.script}
                 </pre>
               </li>
@@ -227,7 +231,7 @@ export default function SettingsPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
             Security
           </h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
+          <ul className="mt-4 list-disc space-y-2.5 pl-5 text-sm leading-relaxed text-[var(--muted)]">
             <li>JWT access tokens are kept in sessionStorage for this browser tab.</li>
             <li>
               Device authentication tokens stay available on Devices under Show

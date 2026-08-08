@@ -17,7 +17,7 @@ const tones: Record<BadgeTone, string> = {
   success: "bg-[var(--success-soft)] text-[var(--success)] border-[color-mix(in_srgb,var(--success)_35%,transparent)]",
   warning: "bg-[var(--warning-soft)] text-[var(--warning)] border-[color-mix(in_srgb,var(--warning)_35%,transparent)]",
   danger: "bg-[var(--danger-soft)] text-[var(--danger)] border-[color-mix(in_srgb,var(--danger)_35%,transparent)]",
-  info: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+  info: "bg-[var(--accent-soft)] text-[var(--accent-strong)] border-[color-mix(in_srgb,var(--accent)_30%,transparent)]",
 };
 
 export function Badge({

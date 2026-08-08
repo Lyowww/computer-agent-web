@@ -38,7 +38,7 @@ export function Sheet({
       <button
         type="button"
         aria-label="Close overlay"
-        className="absolute inset-0 bg-[#090d16]/65 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-[color-mix(in_srgb,var(--graphite)_35%,transparent)] backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
       <div
@@ -54,7 +54,7 @@ export function Sheet({
         <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[var(--border-strong)] sm:hidden" />
         {title ? (
           <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
-            <h2 className="font-[family-name:var(--font-display)] text-lg tracking-tight">
+            <h2 className="font-display text-lg tracking-tight">
               {title}
             </h2>
             <button

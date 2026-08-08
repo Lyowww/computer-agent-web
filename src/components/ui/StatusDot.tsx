@@ -26,15 +26,15 @@ export function StatusDot({
         <span
           className={cn(
             "absolute inline-flex h-full w-full rounded-full opacity-60",
-            online && "animate-ping bg-emerald-400",
+            online && "animate-ping bg-[var(--success)]",
           )}
         />
         <span
           className={cn(
             "relative inline-flex h-2.5 w-2.5 rounded-full",
-            online && "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]",
-            !online && !revoked && "bg-slate-400",
-            revoked && "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]",
+            online && "bg-[var(--success)] shadow-[0_0_8px_rgba(99,230,173,0.5)]",
+            !online && !revoked && "bg-[var(--muted-dim)]",
+            revoked && "bg-[var(--danger)] shadow-[0_0_8px_rgba(227,93,114,0.45)]",
           )}
         />
       </span>

@@ -43,7 +43,9 @@ export default function LoginPage() {
         setSession(result.user, result.accessToken);
       } else {
         if (!devBypass) {
-          setError("Public registration is disabled. Join the waitlist from the landing page.");
+          setError(
+            "Public registration is disabled. Join the waitlist from the landing page.",
+          );
           return;
         }
         const parsed = registerSchema.safeParse({
@@ -69,16 +71,8 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-[var(--bg)]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(6,182,212,0.18),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(8,145,178,0.12),transparent_40%),linear-gradient(160deg,#090d16,#0c1220_45%,#090d16)]" />
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(30,41,59,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(30,41,59,0.5) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
-          }}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(57,213,242,0.16),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(99,230,173,0.12),transparent_40%),linear-gradient(160deg,#f1ece2,#e8e2d4_45%,#ddd6c6)]" />
+        <div className="atmosphere-grid absolute inset-0 opacity-50" />
       </div>
 
       <div className="relative mx-auto flex min-h-[100dvh] max-w-6xl flex-col justify-center px-4 py-8 sm:py-10 md:flex-row md:items-center md:gap-16 md:px-8">
@@ -90,10 +84,10 @@ export default function LoginPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to PetAI
           </Link>
-          <p className="font-[family-name:var(--font-display)] text-4xl tracking-tight text-[var(--fg)] sm:text-5xl md:text-6xl">
-            PetAI
+          <p className="font-display text-4xl tracking-tight text-[var(--fg)] sm:text-5xl md:text-6xl">
+            PETAI
           </p>
-          <h1 className="mt-3 text-xl font-semibold text-slate-200 sm:mt-4 sm:text-2xl md:text-3xl">
+          <h1 className="mt-3 text-xl font-semibold text-[var(--fg)] sm:mt-4 sm:text-2xl md:text-3xl">
             Developer access
           </h1>
           <p className="mt-3 max-w-md text-sm text-[var(--muted)] sm:text-base">
@@ -104,10 +98,10 @@ export default function LoginPage() {
 
         <form
           onSubmit={(e) => void onSubmit(e)}
-          className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--panel)]/90 p-5 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-6"
+          className="w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--panel)]/90 p-5 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-6"
         >
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
-            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] p-3">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
             <div className="min-w-0">
               <Badge tone="warning" className="mb-1.5">
                 Coming Soon Mode Active

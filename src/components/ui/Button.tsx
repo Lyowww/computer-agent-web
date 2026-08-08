@@ -9,14 +9,14 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)] shadow-[0_0_0_1px_rgba(6,182,212,0.25),0_8px_24px_-12px_var(--accent-glow)] hover:shadow-[0_0_20px_-4px_var(--accent-glow)]",
+    "bg-[var(--accent)] text-[var(--graphite)] hover:bg-[var(--accent-strong)] hover:text-white shadow-[0_10px_28px_-16px_var(--accent-glow)]",
   secondary:
-    "bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_22%,transparent)]",
+    "bg-[var(--accent-soft)] text-[var(--steel)] hover:bg-[color-mix(in_srgb,var(--cyan)_22%,white)]",
   ghost: "bg-transparent text-[var(--fg)] hover:bg-[var(--accent-soft)]",
   danger:
-    "bg-[var(--danger)] text-white hover:brightness-110 shadow-[0_8px_24px_-12px_rgba(225,29,72,0.5)]",
+    "bg-[var(--danger)] text-white hover:brightness-105 shadow-[0_8px_24px_-12px_rgba(227,93,114,0.35)]",
   outline:
-    "border border-[var(--border)] bg-[var(--panel)]/70 text-[var(--fg)] hover:border-[var(--border-strong)] hover:bg-[var(--panel-elevated)]",
+    "border border-[var(--border-strong)] bg-[var(--panel-elevated)] text-[var(--fg)] hover:border-[var(--teal)] hover:bg-[var(--bg-elevated)]",
 };
 
 const sizes: Record<Size, string> = {

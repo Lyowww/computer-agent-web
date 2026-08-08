@@ -161,11 +161,23 @@ export default function DashboardPage() {
       <div className="space-y-4 sm:space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl md:text-4xl">
-              Dashboard
+            <h1 className="font-display text-2xl tracking-tight sm:text-3xl md:text-4xl">
+              {(() => {
+                const hour = new Date().getHours();
+                const greeting =
+                  hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+                return greeting;
+              })()}
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)] sm:text-base">
-              Live fleet overview and media feed
+              Your machines are ready.{" "}
+              <span className="text-[var(--fg)]">
+                {onlineCount} device{onlineCount === 1 ? "" : "s"} online
+              </span>
+              {" · "}
+              <span className="text-[var(--fg)]">
+                {runningTasks} active task{runningTasks === 1 ? "" : "s"}
+              </span>
             </p>
           </div>
           <Badge tone={wsConnected ? "success" : "warning"} pulse={wsConnected}>
@@ -184,7 +196,7 @@ export default function DashboardPage() {
                     {m.label}
                   </span>
                 </div>
-                <p className="mt-2 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+                <p className="mt-2 font-display text-2xl tracking-tight sm:text-3xl">
                   {m.value}
                 </p>
               </Card>
@@ -212,10 +224,16 @@ export default function DashboardPage() {
           />
         ) : devicesWithTasks.length === 0 ? (
           <Card className="border-dashed text-center" padding="lg">
-            <p className="font-medium">No devices yet</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Register a desktop agent from the Devices page.
+            <p className="font-display text-xl tracking-tight">No devices connected.</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Install the PetAI desktop agent to connect your first computer.
             </p>
+            <a
+              href="/devices/"
+              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-white"
+            >
+              Connect Device
+            </a>
           </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">

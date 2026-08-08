@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 export function ActionList({ actions }: { actions: PlannedAction[] }) {
   return (
     <Card>
-      <h2 className="font-[family-name:var(--font-display)] text-lg tracking-tight">
+      <h2 className="font-display text-lg tracking-tight">
         Action stream
       </h2>
       <p className="mt-1 text-xs text-[var(--muted)]">

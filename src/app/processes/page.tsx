@@ -13,7 +13,6 @@ import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { Card } from "@/components/ui/Card";
 import { TableRowSkeleton } from "@/components/ui/Skeleton";
-import { cn } from "@/lib/utils/cn";
 
 export default function ProcessesPage() {
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
@@ -76,24 +75,24 @@ export default function ProcessesPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-4xl space-y-4 sm:space-y-5">
-        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <div className="min-w-0">
+      <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
             <p className="inline-flex items-center gap-2 text-sm text-[var(--muted)]">
-              <Cpu className="h-4 w-4" />
+              <Cpu className="h-4 w-4 shrink-0" />
               Device control
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight sm:text-3xl">
+            <h1 className="mt-1 font-display text-2xl tracking-tight sm:text-3xl lg:text-4xl">
               Processes
             </h1>
-            <p className="mt-1 text-sm text-[var(--muted)]">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)] sm:text-base">
               Searchable process table sorted by CPU usage
             </p>
           </div>
           <Button
             type="button"
             variant="outline"
-            className="w-full sm:w-auto"
+            className="w-full shrink-0 sm:w-auto"
             disabled={!online || busy}
             loading={busy}
             onClick={() => void refresh()}
@@ -107,11 +106,11 @@ export default function ProcessesPage() {
           <label className="block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
             Device
           </label>
-          <div className="mt-1 flex items-center gap-2 sm:gap-3">
+          <div className="mt-2 flex min-w-0 items-center gap-3">
             <select
               value={selectedDeviceId ?? ""}
               onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="select-field flex-1"
+              className="select-field min-w-0 flex-1"
             >
               <option value="" disabled>
                 Select device
@@ -122,7 +121,11 @@ export default function ProcessesPage() {
                 </option>
               ))}
             </select>
-            {selectedDevice ? <StatusDot status={selectedDevice.connectionStatus} /> : null}
+            {selectedDevice ? (
+              <div className="shrink-0">
+                <StatusDot status={selectedDevice.connectionStatus} />
+              </div>
+            ) : null}
           </div>
         </Card>
 
@@ -131,11 +134,11 @@ export default function ProcessesPage() {
         ) : null}
 
         <Card padding="none">
-          <div className="flex flex-col gap-3 border-b border-[var(--border)] px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-            <h2 className="text-sm font-semibold">
+          <div className="flex flex-col gap-3 border-b border-[var(--border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6">
+            <h2 className="shrink-0 text-base font-semibold">
               Running processes ({filtered.length})
             </h2>
-            <label className="relative block w-full sm:max-w-xs">
+            <label className="relative block w-full sm:max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
               <input
                 value={query}
@@ -146,12 +149,12 @@ export default function ProcessesPage() {
             </label>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--panel-elevated)]/60 text-[11px] uppercase tracking-wide text-[var(--muted)] sm:text-xs">
+            <table className="w-full min-w-[28rem] table-fixed text-left text-sm sm:min-w-0 sm:table-auto">
+              <thead className="bg-[var(--panel-elevated)]/60 text-xs uppercase tracking-wide text-[var(--muted)]">
                 <tr>
-                  <th className="px-3 py-2 font-medium sm:px-4">Name</th>
-                  <th className="px-3 py-2 font-medium sm:px-4">PID</th>
-                  <th className="px-3 py-2 font-medium sm:px-4">CPU</th>
+                  <th className="w-[50%] px-4 py-3 font-medium sm:w-auto sm:px-6">Name</th>
+                  <th className="w-[20%] px-4 py-3 font-medium sm:w-28 sm:px-6">PID</th>
+                  <th className="w-[30%] px-4 py-3 font-medium sm:w-40 sm:px-6">CPU</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,20 +166,16 @@ export default function ProcessesPage() {
                       key={`${proc.pid}-${proc.name}`}
                       className="border-t border-[var(--border)]"
                     >
-                      <td className="max-w-[8rem] truncate px-3 py-2.5 font-medium sm:max-w-[16rem] sm:px-4 md:max-w-none">
+                      <td className="truncate px-4 py-3 font-medium sm:max-w-none sm:px-6 sm:text-base">
                         {proc.name}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-[family-name:var(--font-mono)] text-[var(--muted)] sm:px-4">
+                      <td className="whitespace-nowrap px-4 py-3 font-[family-name:var(--font-mono)] text-[var(--muted)] sm:px-6">
                         {proc.pid}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 sm:px-4">
+                      <td className="whitespace-nowrap px-4 py-3 sm:px-6">
                         {proc.cpu !== undefined ? (
-                          <span className="inline-flex items-center gap-2">
-                            <span
-                              className={cn(
-                                "h-1.5 w-12 overflow-hidden rounded-full bg-[var(--border)]",
-                              )}
-                            >
+                          <span className="inline-flex items-center gap-2.5">
+                            <span className="h-1.5 w-14 overflow-hidden rounded-full bg-[var(--border)] sm:w-16">
                               <span
                                 className="block h-full rounded-full bg-[var(--accent)]"
                                 style={{
@@ -196,7 +195,7 @@ export default function ProcessesPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="px-4 py-10 text-center text-[var(--muted)]">
+                    <td colSpan={3} className="px-4 py-12 text-center text-[var(--muted)] sm:px-6">
                       {online
                         ? loadedOnce || processes.length
                           ? "No processes match your filter."

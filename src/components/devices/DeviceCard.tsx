@@ -65,7 +65,7 @@ export function DeviceCard({
     <Card className="h-full">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-[family-name:var(--font-display)] text-lg tracking-tight sm:text-xl">
+          <h3 className="truncate font-display text-lg tracking-tight sm:text-xl">
             {device.name}
           </h3>
           <p className="mt-1 text-sm text-[var(--muted)]">{formatOs(device.os)}</p>
@@ -171,7 +171,7 @@ export function DeviceCard({
             />
           </button>
           {tokenOpen ? (
-            <div className="mt-2 rounded-xl border border-[var(--border)] bg-[#0a0f18] p-3">
+            <div className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
               <div className="mb-2 flex flex-wrap gap-1">
                 {device.deviceToken ? (
                   <Button size="sm" variant="outline" onClick={() => void copyToken()}>
@@ -192,7 +192,7 @@ export function DeviceCard({
                 ) : null}
               </div>
               {device.deviceToken ? (
-                <pre className="overflow-x-auto whitespace-pre-wrap break-all font-[family-name:var(--font-mono)] text-[11px] text-cyan-300/90">
+                <pre className="overflow-x-auto whitespace-pre-wrap break-all font-[family-name:var(--font-mono)] text-[11px] text-[var(--accent-strong)]/90">
                   {device.deviceToken}
                 </pre>
               ) : (

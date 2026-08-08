@@ -29,7 +29,7 @@ export function Card({
       className={cn(
         "relative overflow-hidden rounded-2xl border border-[var(--border)]",
         elevated ? "bg-[var(--panel-elevated)]" : "bg-[var(--panel)]/90",
-        "shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_12px_40px_-24px_rgba(0,0,0,0.45)]",
+        "shadow-[0_1px_0_0_rgba(255,255,255,0.8)_inset,0_12px_40px_-24px_rgba(23,33,38,0.12)]",
         paddings[padding],
         className,
       )}
@@ -60,7 +60,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "font-[family-name:var(--font-display)] text-lg tracking-tight sm:text-xl",
+        "font-display text-lg tracking-tight sm:text-xl",
         className,
       )}
       {...props}

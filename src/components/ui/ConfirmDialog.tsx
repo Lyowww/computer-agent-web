@@ -34,7 +34,7 @@ export function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#090d16]/70 p-4 backdrop-blur-sm animate-fade-in sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--graphite)_40%,transparent)] p-4 backdrop-blur-sm animate-fade-in sm:items-center">
       <div
         role="dialog"
         aria-modal="true"
@@ -43,7 +43,7 @@ export function ConfirmDialog({
       >
         <h2
           id="confirm-title"
-          className="font-[family-name:var(--font-display)] text-lg tracking-tight text-[var(--fg)]"
+          className="font-display text-lg tracking-tight text-[var(--fg)]"
         >
           {title}
         </h2>

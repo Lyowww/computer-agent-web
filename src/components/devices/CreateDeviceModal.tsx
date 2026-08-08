@@ -66,7 +66,7 @@ export function CreateDeviceModal({
           <p className="rounded-xl border border-[color-mix(in_srgb,var(--success)_35%,transparent)] bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--success)]">
             Token saved. You can always copy it again from the Devices page.
           </p>
-          <pre className="overflow-x-auto rounded-xl bg-[#0a0f18] p-3 font-[family-name:var(--font-mono)] text-xs text-cyan-300">
+          <pre className="overflow-x-auto rounded-xl bg-[var(--bg-elevated)] p-3 font-[family-name:var(--font-mono)] text-xs text-[var(--accent-strong)]">
             {tokenOnce}
           </pre>
           <Button onClick={close} className="w-full">

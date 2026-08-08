@@ -11,7 +11,7 @@ export function DeviceStatePanel({
 }) {
   return (
     <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-4 shadow-sm">
-      <h2 className="font-[family-name:var(--font-display)] text-lg tracking-tight">
+      <h2 className="font-display text-lg tracking-tight">
         Device state
       </h2>
       <p className="mt-1 text-xs text-[var(--muted)]">

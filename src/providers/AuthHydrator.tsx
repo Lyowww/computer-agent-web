@@ -13,8 +13,14 @@ export function AuthHydrator({ children }: { children: ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] text-[var(--muted)]">
-        Loading session…
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--bg)]">
+        <p className="font-display text-2xl tracking-tight text-[var(--fg)]">
+          PETAI
+        </p>
+        <p className="font-mono-ui text-xs text-[var(--muted)]">
+          Initializing agent interface…
+        </p>
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-connect-pulse" />
       </div>
     );
   }
