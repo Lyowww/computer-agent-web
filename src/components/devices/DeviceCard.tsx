@@ -8,6 +8,7 @@ import { formatOs, formatRelativeTime, taskStatusToPhase } from "@/lib/utils/for
 import { StatusDot } from "@/components/ui/StatusDot";
 import { Button } from "@/components/ui/Button";
 import { PhaseBadge } from "@/components/ui/PhaseBadge";
+import { LockControls } from "@/components/devices/LockControls";
 
 export function DeviceCard({
   device,
@@ -15,15 +16,22 @@ export function DeviceCard({
   screenshotBusy,
   onRegenerateToken,
   regenerateBusy,
+  onLock,
+  onUnlock,
+  lockBusy,
 }: {
   device: Device;
   onScreenshot?: (deviceId: string) => void;
   screenshotBusy?: boolean;
   onRegenerateToken?: (deviceId: string) => void;
   regenerateBusy?: boolean;
+  onLock?: (deviceId: string) => void;
+  onUnlock?: (deviceId: string) => void;
+  lockBusy?: "lock" | "unlock" | null;
 }) {
   const active = device.activeTask;
   const [copied, setCopied] = useState(false);
+  const online = device.connectionStatus === "ONLINE";
 
   async function copyToken() {
     if (!device.deviceToken) return;
@@ -112,13 +120,24 @@ export function DeviceCard({
           size="sm"
           variant="outline"
           className="w-full sm:w-auto"
-          disabled={device.connectionStatus !== "ONLINE" || screenshotBusy}
+          disabled={!online || screenshotBusy || !!lockBusy}
           onClick={() => onScreenshot?.(device.id)}
         >
           <Camera className="h-4 w-4" />
-          Take Screenshot
+          Screenshot
         </Button>
       </div>
+
+      {onLock && onUnlock ? (
+        <div className="mt-2">
+          <LockControls
+            disabled={!online || screenshotBusy}
+            busy={lockBusy}
+            onLock={() => onLock(device.id)}
+            onUnlock={() => onUnlock(device.id)}
+          />
+        </div>
+      ) : null}
     </article>
   );
 }

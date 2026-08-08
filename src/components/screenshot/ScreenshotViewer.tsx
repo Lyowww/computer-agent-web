@@ -17,10 +17,12 @@ export function ScreenshotViewer({
   frame,
   deviceName,
   onClose,
+  compact,
 }: {
   frame: ScreenFrame | null;
   deviceName?: string;
   onClose?: () => void;
+  compact?: boolean;
 }) {
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState(true);
@@ -47,7 +49,11 @@ export function ScreenshotViewer({
 
   if (!frame || !src) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-white/50 text-sm text-[var(--muted)]">
+      <div
+        className={`flex items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-white/50 text-sm text-[var(--muted)] ${
+          compact ? "h-32" : "h-40 sm:h-64"
+        }`}
+      >
         No screenshot yet
       </div>
     );
@@ -58,20 +64,20 @@ export function ScreenshotViewer({
       ref={containerRef}
       className="overflow-hidden rounded-2xl border border-[var(--border)] bg-slate-950 text-white"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-2.5 py-1.5 sm:px-3 sm:py-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium sm:text-sm">
             {deviceName || frame.deviceName || "Device screenshot"}
           </p>
-          <p className="text-xs text-white/60">
+          <p className="truncate text-[10px] text-white/60 sm:text-xs">
             {formatTimestamp(frame.receivedAt)} · {frame.width}×{frame.height}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/10"
+            className="px-1.5 text-white hover:bg-white/10 sm:px-2"
             onClick={() => {
               setFit(true);
               setZoom(1);
@@ -83,7 +89,7 @@ export function ScreenshotViewer({
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/10"
+            className="hidden px-1.5 text-white hover:bg-white/10 sm:inline-flex sm:px-2"
             onClick={() => {
               setFit(false);
               setZoom((z) => Math.max(0.5, Number((z - 0.25).toFixed(2))));
@@ -92,11 +98,13 @@ export function ScreenshotViewer({
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="px-1 text-xs text-white/70">{Math.round(zoom * 100)}%</span>
+          <span className="hidden px-1 text-[10px] text-white/70 sm:inline sm:text-xs">
+            {Math.round(zoom * 100)}%
+          </span>
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/10"
+            className="hidden px-1.5 text-white hover:bg-white/10 sm:inline-flex sm:px-2"
             onClick={() => {
               setFit(false);
               setZoom((z) => Math.min(3, Number((z + 0.25).toFixed(2))));
@@ -108,7 +116,7 @@ export function ScreenshotViewer({
           <Button
             size="sm"
             variant="ghost"
-            className="text-white hover:bg-white/10"
+            className="px-1.5 text-white hover:bg-white/10 sm:px-2"
             onClick={() => void toggleFullscreen()}
             aria-label="Fullscreen"
           >
@@ -118,7 +126,7 @@ export function ScreenshotViewer({
             <Button
               size="sm"
               variant="ghost"
-              className="text-white hover:bg-white/10"
+              className="px-1.5 text-white hover:bg-white/10 sm:px-2"
               onClick={onClose}
               aria-label="Close"
             >
@@ -127,15 +135,19 @@ export function ScreenshotViewer({
           ) : null}
         </div>
       </div>
-      <div className="max-h-[55vh] overflow-auto bg-[linear-gradient(45deg,#0f172a_25%,transparent_25%),linear-gradient(-45deg,#0f172a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#0f172a_75%),linear-gradient(-45deg,transparent_75%,#0f172a_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] p-2 sm:max-h-[70vh] sm:p-3">
+      <div
+        className={`overflow-auto bg-[linear-gradient(45deg,#0f172a_25%,transparent_25%),linear-gradient(-45deg,#0f172a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#0f172a_75%),linear-gradient(-45deg,transparent_75%,#0f172a_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0] p-1.5 sm:p-3 ${
+          compact ? "max-h-[34vh]" : "max-h-[38vh] sm:max-h-[55vh] lg:max-h-[70vh]"
+        }`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt="Device screenshot"
-          className="mx-auto rounded-md shadow-lg transition-transform"
+          className="mx-auto max-w-full rounded-md shadow-lg transition-transform"
           style={
             fit
-              ? { maxWidth: "100%", height: "auto" }
+              ? { width: "100%", height: "auto" }
               : { width: `${zoom * 100}%`, maxWidth: "none" }
           }
         />

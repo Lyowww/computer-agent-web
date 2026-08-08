@@ -157,6 +157,12 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           s.setLastError(payload.error || `Failed to ${payload.action} ${payload.app}`);
         }
       },
+      onLockResult: (payload) => {
+        const s = useChatStore.getState();
+        if (!payload.success) {
+          s.setLastError(payload.error || `Failed to ${payload.action} screen`);
+        }
+      },
       onError: (payload) => {
         if (!payload?.message) return;
         useChatStore.getState().setLastError(payload.message);

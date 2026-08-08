@@ -52,7 +52,9 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
+  const [lockBusy, setLockBusy] = useState<"lock" | "unlock" | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [dismissedShotId, setDismissedShotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialDeviceId) setSelectedDeviceId(initialDeviceId);
@@ -167,6 +169,46 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     }
   }
 
+  async function handleLock() {
+    if (!wsConnected || !selectedDeviceId) {
+      setLastError("Select an online device first.");
+      return;
+    }
+    setLockBusy("lock");
+    setLastError(null);
+    try {
+      await agentSocket.emitLockScreen({
+        requestId: createRequestId("lock"),
+        deviceId: selectedDeviceId,
+      });
+      appendLocalSystemMessage("Lock screen requested.");
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to lock screen");
+    } finally {
+      setLockBusy(null);
+    }
+  }
+
+  async function handleUnlock() {
+    if (!wsConnected || !selectedDeviceId) {
+      setLastError("Select an online device first.");
+      return;
+    }
+    setLockBusy("unlock");
+    setLastError(null);
+    try {
+      await agentSocket.emitUnlockScreen({
+        requestId: createRequestId("unlock"),
+        deviceId: selectedDeviceId,
+      });
+      appendLocalSystemMessage("Unlock requested.");
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to unlock screen");
+    } finally {
+      setLockBusy(null);
+    }
+  }
+
   async function handleCancel() {
     if (!activeTaskId) return;
     try {
@@ -220,6 +262,9 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
     activeTaskStatus !== "COMPLETED" &&
     activeTaskStatus !== "FAILED" &&
     activeTaskStatus !== "CANCELLED";
+
+  const mobileShotOpen =
+    !!latestScreenshot && latestScreenshot.requestId !== dismissedShotId;
 
   return (
     <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)] lg:gap-4">
@@ -302,6 +347,9 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
           onCancel={() => void handleCancel()}
           onScreenshot={() => void handleScreenshot()}
           screenshotBusy={screenshotBusy}
+          onLock={() => void handleLock()}
+          onUnlock={() => void handleUnlock()}
+          lockBusy={lockBusy}
         />
       </section>
 
@@ -321,17 +369,34 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
         />
       </aside>
 
-      {/* Mobile: screenshot / progress below chat, not competing for height */}
-      <aside className="space-y-3 px-3 pb-2 lg:hidden">
-        {latestScreenshot ? (
-          <ScreenshotViewer
-            frame={{
-              ...latestScreenshot,
-              deviceName: selectedDevice?.name,
-            }}
-            deviceName={selectedDevice?.name}
-          />
-        ) : null}
+      {/* Mobile: collapsible screenshot sheet — doesn't steal chat height */}
+      {latestScreenshot ? (
+        <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 px-3 lg:hidden">
+          {mobileShotOpen ? (
+            <div className="max-h-[42vh] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] shadow-xl">
+              <ScreenshotViewer
+                compact
+                frame={{
+                  ...latestScreenshot,
+                  deviceName: selectedDevice?.name,
+                }}
+                deviceName={selectedDevice?.name}
+                onClose={() => setDismissedShotId(latestScreenshot.requestId)}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDismissedShotId(null)}
+              className="mb-2 w-full rounded-xl border border-[var(--border)] bg-[var(--panel)]/95 px-3 py-2 text-left text-sm font-medium shadow-md backdrop-blur"
+            >
+              Show latest screenshot
+            </button>
+          )}
+        </div>
+      ) : null}
+
+      <aside className="hidden space-y-3 px-3 pb-2 lg:hidden">
         {aiEnabled && progressSteps.length ? (
           <TaskProgress steps={progressSteps} phase={phase} />
         ) : null}

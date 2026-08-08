@@ -133,11 +133,11 @@ export default function ProcessesPage() {
                       key={`${proc.pid}-${proc.name}`}
                       className="border-t border-[var(--border)]"
                     >
-                      <td className="max-w-[10rem] truncate px-3 py-2 font-medium sm:max-w-none sm:px-4">
+                      <td className="max-w-[8rem] truncate px-3 py-2.5 font-medium sm:max-w-[16rem] sm:px-4 md:max-w-none">
                         {proc.name}
                       </td>
-                      <td className="px-3 py-2 text-[var(--muted)] sm:px-4">{proc.pid}</td>
-                      <td className="px-3 py-2 text-[var(--muted)] sm:px-4">
+                      <td className="whitespace-nowrap px-3 py-2.5 text-[var(--muted)] sm:px-4">{proc.pid}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-[var(--muted)] sm:px-4">
                         {proc.cpu !== undefined ? `${proc.cpu}%` : "—"}
                       </td>
                     </tr>

@@ -6,6 +6,7 @@ import type {
   AppsResultPayload,
   DeviceStatusPayload,
   ErrorPayload,
+  LockResultPayload,
   NotifyResultPayload,
   ProcessesResultPayload,
   ScreenResultPayload,
@@ -29,6 +30,7 @@ export type WsHandlers = {
   onAppsResult?: (payload: AppsResultPayload) => void;
   onNotifyResult?: (payload: NotifyResultPayload) => void;
   onAppActionResult?: (payload: AppActionResultPayload) => void;
+  onLockResult?: (payload: LockResultPayload) => void;
   onError?: (payload: ErrorPayload) => void;
 };
 
@@ -146,6 +148,9 @@ export class AgentSocket {
         case "APP_ACTION_RESULT":
           handlers.onAppActionResult?.(payload as AppActionResultPayload);
           break;
+        case "LOCK_RESULT":
+          handlers.onLockResult?.(payload as LockResultPayload);
+          break;
         case "ERROR":
           handlers.onError?.(payload as ErrorPayload);
           break;
@@ -167,6 +172,7 @@ export class AgentSocket {
       "APPS_RESULT",
       "NOTIFY_RESULT",
       "APP_ACTION_RESULT",
+      "LOCK_RESULT",
       "ERROR",
     ] as const;
 
@@ -255,6 +261,20 @@ export class AgentSocket {
     return this.emitAndWaitForResult("CLOSE_APP", payload, "APP_ACTION_RESULT", 15000);
   }
 
+  emitLockScreen(payload: {
+    requestId: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAndWaitForResult("LOCK_SCREEN", payload, "LOCK_RESULT", 15000);
+  }
+
+  emitUnlockScreen(payload: {
+    requestId: string;
+    deviceId?: string;
+  }): Promise<unknown> {
+    return this.emitAndWaitForResult("UNLOCK_SCREEN", payload, "LOCK_RESULT", 25000);
+  }
+
   /**
    * Fire the command, accept Nest/REQUEST_ACK if present, but resolve only when
    * the matching result event arrives (or reject on timeout / ERROR).
@@ -280,10 +300,14 @@ export class AgentSocket {
         else resolve(response);
       };
 
-      const onResult = (data: { requestId?: string; error?: string }) => {
+      const onResult = (data: {
+        requestId?: string;
+        error?: string;
+        success?: boolean;
+      }) => {
         if (data?.requestId && data.requestId !== payload.requestId) return;
-        if (data?.error) {
-          finish(new Error(data.error));
+        if (data?.error || data?.success === false) {
+          finish(new Error(data?.error || `${event} failed`));
           return;
         }
         finish(null, data);

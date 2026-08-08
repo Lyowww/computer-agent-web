@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Send, StopCircle, Bell, Bot } from "lucide-react";
+import { Camera, Send, StopCircle, Bell, Bot, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorder";
 
@@ -14,6 +14,9 @@ export function ChatComposer({
   onCancel,
   onScreenshot,
   screenshotBusy,
+  onLock,
+  onUnlock,
+  lockBusy,
 }: {
   disabled?: boolean;
   canCancel?: boolean;
@@ -23,6 +26,9 @@ export function ChatComposer({
   onCancel?: () => void;
   onScreenshot?: () => void;
   screenshotBusy?: boolean;
+  onLock?: () => void;
+  onUnlock?: () => void;
+  lockBusy?: "lock" | "unlock" | null;
 }) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
@@ -63,13 +69,37 @@ export function ChatComposer({
           type="button"
           size="sm"
           variant="outline"
-          disabled={disabled || screenshotBusy}
+          disabled={disabled || screenshotBusy || !!lockBusy}
           onClick={onScreenshot}
           className="px-2.5 sm:px-3"
           aria-label="Screenshot"
         >
           <Camera className="h-4 w-4" />
           <span className="hidden sm:inline">Screenshot</span>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled || !!lockBusy || screenshotBusy}
+          onClick={onLock}
+          className="px-2.5 sm:px-3"
+          aria-label="Lock screen"
+        >
+          <Lock className={`h-4 w-4 ${lockBusy === "lock" ? "animate-pulse" : ""}`} />
+          <span className="hidden sm:inline">Lock</span>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled || !!lockBusy || screenshotBusy}
+          onClick={onUnlock}
+          className="px-2.5 sm:px-3"
+          aria-label="Unlock screen"
+        >
+          <Unlock className={`h-4 w-4 ${lockBusy === "unlock" ? "animate-pulse" : ""}`} />
+          <span className="hidden sm:inline">Unlock</span>
         </Button>
         {canCancel ? (
           <Button type="button" size="sm" variant="danger" onClick={onCancel}>

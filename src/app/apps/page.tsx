@@ -11,6 +11,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { StatusDot } from "@/components/ui/StatusDot";
+import { LockControls } from "@/components/devices/LockControls";
 
 const QUICK_OPEN = ["Chrome", "Safari", "Firefox", "VS Code", "Slack", "Terminal", "Notes", "Calculator"];
 
@@ -104,6 +105,44 @@ export default function AppsPage() {
     }
   }
 
+  async function lockScreen() {
+    if (!selectedDeviceId || !online) {
+      setLastError("Select an online device first.");
+      return;
+    }
+    setBusy("lock");
+    setLastError(null);
+    try {
+      await agentSocket.emitLockScreen({
+        requestId: createRequestId("lock"),
+        deviceId: selectedDeviceId,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to lock screen");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function unlockScreen() {
+    if (!selectedDeviceId || !online) {
+      setLastError("Select an online device first.");
+      return;
+    }
+    setBusy("unlock");
+    setLastError(null);
+    try {
+      await agentSocket.emitUnlockScreen({
+        requestId: createRequestId("unlock"),
+        deviceId: selectedDeviceId,
+      });
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Failed to unlock screen");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-4 sm:space-y-5">
@@ -117,7 +156,7 @@ export default function AppsPage() {
               Applications
             </h1>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Open or quit apps on the selected desktop agent
+              Open, quit, lock, or unlock the selected desktop agent
             </p>
           </div>
           <Button
@@ -158,6 +197,20 @@ export default function AppsPage() {
         {lastError ? (
           <ErrorBanner message={lastError} onDismiss={() => setLastError(null)} />
         ) : null}
+
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
+          <h2 className="text-sm font-semibold">Lock screen</h2>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Lock opens the OS lock screen. Unlock types the password saved in the desktop agent Settings.
+          </p>
+          <LockControls
+            className="mt-3 grid grid-cols-2 gap-2 sm:max-w-sm"
+            disabled={!online}
+            busy={busy}
+            onLock={() => void lockScreen()}
+            onUnlock={() => void unlockScreen()}
+          />
+        </section>
 
         <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-3 shadow-sm sm:p-4">
           <h2 className="text-sm font-semibold">Quick open</h2>

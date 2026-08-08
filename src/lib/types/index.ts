@@ -153,7 +153,10 @@ export type WsEventName =
   | "APPS_RESULT"
   | "OPEN_APP"
   | "CLOSE_APP"
-  | "APP_ACTION_RESULT";
+  | "APP_ACTION_RESULT"
+  | "LOCK_SCREEN"
+  | "UNLOCK_SCREEN"
+  | "LOCK_RESULT";
 
 export interface DeviceStatusPayload {
   deviceId: string;
@@ -208,6 +211,14 @@ export interface AppActionResultPayload {
   action: "open" | "close";
   app: string;
   success: boolean;
+  error?: string;
+}
+
+export interface LockResultPayload {
+  requestId: string;
+  action: "lock" | "unlock";
+  success: boolean;
+  alreadyUnlocked?: boolean;
   error?: string;
 }
 
