@@ -337,3 +337,42 @@ select {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Device location map (Leaflet) */
+.petai-location-map.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: var(--bg-elevated);
+  font: inherit;
+}
+
+.petai-location-map .leaflet-control-attribution {
+  background: color-mix(in srgb, white 82%, transparent);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.petai-map-pin {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.petai-map-pin__glyph {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--accent-strong);
+  border: 2px solid var(--panel-elevated);
+  box-shadow: 0 6px 14px rgba(17, 23, 27, 0.28);
+  transform: rotate(-45deg);
+}
+
+.petai-map-pin__glyph::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 999px;
+  background: var(--panel-elevated);
+  transform: rotate(45deg);
+}
