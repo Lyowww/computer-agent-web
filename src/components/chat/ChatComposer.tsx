@@ -135,7 +135,7 @@ export function ChatComposer({
     <>
       <form
         onSubmit={(e) => void submit(e)}
-        className="shrink-0 border-t border-[var(--border)] bg-[var(--panel)]/95 p-2.5 backdrop-blur sm:p-3"
+        className="shrink-0 border-t border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_94%,transparent)] p-3 backdrop-blur-xl sm:p-3.5"
       >
         <div className="mb-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
           <label
@@ -244,7 +244,7 @@ export function ChatComposer({
           ) : null}
         </div>
 
-        <div className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)]/80 p-1.5 shadow-[0_0_0_1px_rgba(6,182,212,0.08)] focus-within:border-[var(--accent)] focus-within:shadow-[0_0_0_3px_var(--accent-soft)]">
+        <div className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] p-1.5 shadow-[0_0_0_1px_rgba(57,213,242,0.06)] focus-within:border-[var(--accent)] focus-within:shadow-[0_0_0_3px_var(--accent-soft)]">
           <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}

@@ -1304,106 +1304,276 @@
   }
 }
 
+.mobile-face-dock {
+  display: none;
+}
+
 @media (width <= 56.25em) {
   .cube-landing {
-    --cube-inset: 0.75rem;
-    --mobile-cube: min(64vw, 30dvh, 260px);
+    --cube-inset: 1rem;
+    --mobile-cube: min(58vw, 34dvh, 280px);
+    --mobile-card-pad: 1.15rem;
+    --mobile-nav-h: 3.5rem;
     overflow-x: clip;
     width: 100%;
     max-width: 100%;
+    background:
+      radial-gradient(ellipse 90% 45% at 50% 12%, rgba(57, 213, 242, 0.18), transparent 55%),
+      radial-gradient(ellipse 70% 40% at 80% 60%, rgba(99, 230, 173, 0.08), transparent 50%),
+      radial-gradient(ellipse 60% 35% at 10% 80%, rgba(62, 207, 207, 0.07), transparent 45%),
+      linear-gradient(180deg, #04070a 0%, #070b0e 45%, #05080b 100%);
   }
 
+  /* ── Cinematic floating cube ── */
   .cube-scene {
     align-items: flex-start;
     justify-content: center;
-    padding-top: max(4.35rem, calc(env(safe-area-inset-top) + 3.4rem));
-    padding-bottom: 46svh;
-    perspective: 780px;
-    perspective-origin: 50% 26%;
+    padding-top: calc(
+      max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) + 0.35rem
+    );
+    padding-bottom: 48svh;
+    perspective: 900px;
+    perspective-origin: 50% 28%;
     overflow: hidden;
     width: 100%;
     max-width: 100%;
   }
 
+  .cube-scene::before {
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 28%, rgba(57, 213, 242, 0.22), transparent 62%),
+      radial-gradient(circle at 70% 20%, rgba(99, 230, 173, 0.12), transparent 40%),
+      radial-gradient(circle at 25% 45%, rgba(62, 207, 207, 0.1), transparent 42%);
+  }
+
+  .cube-scene::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(
+      max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) +
+        var(--mobile-cube) * 0.92
+    );
+    width: min(70vw, 18rem);
+    height: 2.2rem;
+    translate: -50% 0;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(57, 213, 242, 0.22),
+      transparent 70%
+    );
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .cube {
     --s: var(--mobile-cube);
     opacity: 1;
+    filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.45));
+    animation: mobile-cube-float 5.5s ease-in-out infinite;
   }
 
+  @keyframes mobile-cube-float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -0.65rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cube {
+      animation: none;
+    }
+  }
+
+  /* Hide dense face mock UIs — show elegant face titles instead */
   .cube-face-inner {
-    padding: clamp(0.55rem, 3.5cqw, 0.85rem);
-    gap: clamp(0.4rem, 2.2cqw, 0.6rem);
+    display: none;
+  }
+
+  .cube-face {
+    border-radius: 0.35rem;
+    border-color: color-mix(in srgb, #39d5f2 28%, transparent);
+    box-shadow:
+      inset 0 0 60px rgba(57, 213, 242, 0.12),
+      0 20px 48px -18px rgba(0, 0, 0, 0.6);
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 40%, rgba(57, 213, 242, 0.16), transparent 65%),
+      linear-gradient(155deg, #15202a 0%, #0b1218 55%, #080e13 100%);
+  }
+
+  .cube-face-ph {
+    inset: 0;
+    bottom: auto;
+    left: auto;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    font-size: clamp(1.15rem, 8.5cqw, 2rem);
+    letter-spacing: 0.18em;
+    color: rgba(232, 238, 242, 0.92);
+    text-shadow: 0 0 32px rgba(57, 213, 242, 0.45);
+    background:
+      radial-gradient(circle at 50% 42%, rgba(57, 213, 242, 0.14), transparent 55%);
+    z-index: 2;
+  }
+
+  .cube-face-ph::after {
+    content: "";
+    position: absolute;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--cube-accent);
+    box-shadow: 0 0 0 4px rgba(57, 213, 242, 0.2), 0 0 18px rgba(57, 213, 242, 0.55);
+    top: 18%;
+    left: 50%;
+    translate: -50% 0;
+  }
+
+  /* ── Compact top bar ── */
+  .cube-topnav {
+    left: 1rem;
+    top: max(0.85rem, env(safe-area-inset-top));
+    z-index: 40;
+    max-width: calc(100% - 9rem);
+  }
+
+  .cube-brand {
+    font-size: 1.35rem;
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+
+  .cube-top-cta {
+    right: 1rem;
+    top: max(0.7rem, env(safe-area-inset-top));
+    left: auto;
+    bottom: auto;
+    gap: 0;
+    z-index: 40;
+    max-width: none;
+  }
+
+  .cube-top-cta .cube-btn-ghost {
+    display: none;
+  }
+
+  .cube-top-cta .cube-btn {
+    min-height: 2.55rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    border-radius: 999px;
+  }
+
+  .cube-hud,
+  .cube-caption {
+    display: none;
   }
 
   .cube-strip:not(.cube-strip--mobile) {
     display: none;
   }
 
+  /* Face dots live inside the dock on mobile */
   .cube-strip--mobile {
     display: flex;
-    flex-direction: row;
-    left: 50%;
-    top: calc(
-      max(4.35rem, env(safe-area-inset-top) + 3.4rem) + var(--mobile-cube) +
-        0.7rem
-    );
+    position: static;
+    left: auto;
+    top: auto;
     bottom: auto;
-    translate: -50% 0;
-    gap: 0.75rem;
+    translate: none;
+    flex-direction: row;
+    gap: 0.7rem;
     padding: 0;
     border: none;
+    border-radius: 0;
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
-    z-index: 25;
+    z-index: auto;
+    pointer-events: auto;
   }
 
   .cube-dot {
-    width: 0.38rem;
-    height: 0.38rem;
+    width: 0.4rem;
+    height: 0.4rem;
   }
 
   .cube-dot.active {
     scale: 1.45;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #39d5f2 28%, transparent);
   }
 
-  .cube-topnav {
-    left: 0.75rem;
-    top: max(0.7rem, env(safe-area-inset-top));
-    z-index: 40;
-    max-width: calc(100% - 11.5rem);
+  .mobile-face-dock {
+    display: block;
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: max(0.65rem, env(safe-area-inset-bottom));
+    z-index: 28;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
   }
 
-  .cube-brand {
-    font-size: 1.2rem;
+  .mobile-face-dock-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.95rem;
+    border-radius: 1.15rem;
+    border: 1px solid color-mix(in srgb, #39d5f2 16%, transparent);
+    background: rgba(8, 14, 18, 0.82);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.65);
+    pointer-events: auto;
+  }
+
+  .mobile-face-dock-num {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--cube-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-face-dock-num em {
+    font-style: normal;
+    color: var(--cube-muted);
+    margin-left: 0.1rem;
+  }
+
+  .mobile-face-dock-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+  }
+
+  .mobile-face-dock-name {
+    font-family: var(--font-cube-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    color: var(--cube-fg);
+    text-align: center;
     line-height: 1;
   }
 
-  .cube-top-cta {
-    right: 0.75rem;
-    top: max(0.55rem, env(safe-area-inset-top));
-    left: auto;
-    bottom: auto;
-    gap: 0.4rem;
-    z-index: 40;
-    max-width: calc(100vw - 5.5rem);
-  }
-
-  .cube-top-cta .cube-btn {
-    min-height: 2.5rem;
-    padding: 0.45rem 0.7rem;
-    font-size: 0.58rem;
-    letter-spacing: 0.1em;
+  .mobile-face-dock-hint {
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cube-muted);
     white-space: nowrap;
-  }
-
-  .cube-hud {
-    display: none;
-  }
-
-  .cube-caption {
-    display: none;
   }
 
   .cube-scroll {
@@ -1412,6 +1582,7 @@
     overflow-x: clip;
   }
 
+  /* ── Story cards as bottom sheets ── */
   .cube-section {
     min-height: 100svh;
     width: 100%;
@@ -1421,11 +1592,11 @@
     justify-content: center;
     padding:
       calc(
-        max(4.35rem, env(safe-area-inset-top) + 3.4rem) + var(--mobile-cube) +
-          2.35rem
+        max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) +
+          var(--mobile-cube) + 1.1rem
       )
-      0.75rem
-      max(1.1rem, calc(env(safe-area-inset-bottom) + 0.85rem));
+      0.85rem
+      calc(max(0.85rem, env(safe-area-inset-bottom)) + 5.75rem);
   }
 
   .cube-section:first-child {
@@ -1440,19 +1611,71 @@
     max-width: 100%;
     width: 100%;
     text-align: left;
-    background: rgba(12, 18, 24, 0.92);
+    border-radius: 1.35rem 1.35rem 1.15rem 1.15rem;
+    border: 1px solid color-mix(in srgb, #39d5f2 20%, transparent);
+    background:
+      linear-gradient(
+        165deg,
+        rgba(20, 32, 42, 0.94) 0%,
+        rgba(10, 16, 22, 0.96) 100%
+      );
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
     box-shadow:
-      0 14px 36px -18px rgba(0, 0, 0, 0.55),
-      0 1px 0 rgba(57, 213, 242, 0.08) inset;
+      0 -8px 40px -16px rgba(57, 213, 242, 0.18),
+      0 24px 48px -24px rgba(0, 0, 0, 0.7),
+      0 1px 0 rgba(57, 213, 242, 0.1) inset;
   }
 
   .text-card-glow {
+    display: block;
+    inset: -30% 10% auto;
+    width: 80%;
+    height: 50%;
+    margin-inline: auto;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, #39d5f2 26%, transparent),
+      transparent 70%
+    );
+  }
+
+  .text-card-frame {
     display: none;
+  }
+
+  .text-card-rail {
+    left: 1.1rem;
+    right: auto;
+    top: 1.15rem;
+    bottom: 1.15rem;
+    width: 0.16rem;
+    height: auto;
+    border-radius: 99px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      var(--cube-accent) 15%,
+      var(--cube-mint) 85%,
+      transparent
+    );
+    box-shadow: 0 0 16px color-mix(in srgb, #39d5f2 40%, transparent);
+  }
+
+  .text-card.right .text-card-rail,
+  .text-card.center .text-card-rail {
+    left: 1.1rem;
+    right: auto;
+    top: 1.15rem;
+    bottom: 1.15rem;
+    width: 0.16rem;
+    height: auto;
+    border-radius: 99px;
   }
 
   .text-card-body {
     align-items: flex-start;
-    padding: 1.1rem 1rem 1.05rem 1.15rem;
+    padding: 1.35rem 1.25rem 1.3rem 1.55rem;
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -1460,52 +1683,22 @@
   .text-card.right .text-card-body,
   .text-card.center .text-card-body {
     align-items: flex-start;
-    padding: 1.1rem 1rem 1.05rem 1.15rem;
-  }
-
-  .text-card-rail {
-    left: 0;
-    right: auto;
-    top: 0.75rem;
-    bottom: 0.75rem;
-    width: 0.14rem;
-    height: auto;
-    border-radius: 0 2px 2px 0;
-    background: linear-gradient(
-      180deg,
-      transparent,
-      var(--cube-accent) 18%,
-      var(--cube-teal) 82%,
-      transparent
-    );
-  }
-
-  .text-card.right .text-card-rail,
-  .text-card.center .text-card-rail {
-    left: 0;
-    right: auto;
-    top: 0.75rem;
-    bottom: 0.75rem;
-    width: 0.14rem;
-    height: auto;
-    border-radius: 0 2px 2px 0;
-  }
-
-  .text-card-frame {
-    inset: 0.45rem;
+    padding: 1.35rem 1.25rem 1.3rem 1.55rem;
   }
 
   .text-card.right .cube-tag,
   .text-card.center .cube-tag {
     flex-direction: row;
     margin-inline: 0;
-    padding: 0.32rem 0.58rem 0.32rem 0.45rem;
+    padding: 0.36rem 0.7rem 0.36rem 0.55rem;
   }
 
   .cube-tag {
-    white-space: normal;
+    white-space: nowrap;
     max-width: 100%;
-    margin-bottom: 0.7rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.58rem;
+    border-radius: 999px;
   }
 
   .text-card.right .body-text,
@@ -1527,132 +1720,219 @@
   }
 
   .text-card h1 {
-    font-size: clamp(1.75rem, 7.2vw, 2.25rem);
-    line-height: 1.12;
+    font-size: clamp(2rem, 8.2vw, 2.55rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
   }
 
   .text-card h2 {
-    font-size: clamp(1.4rem, 6vw, 1.85rem);
-    line-height: 1.12;
+    font-size: clamp(1.65rem, 7vw, 2.1rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
   }
 
   .body-text {
-    font-size: 0.72rem;
-    line-height: 1.6;
-    margin-block-start: 0.7rem;
+    font-size: 0.88rem;
+    line-height: 1.62;
+    margin-block-start: 0.85rem;
     max-width: none;
+    color: color-mix(in srgb, var(--cube-muted) 88%, white);
   }
 
   .stat-row {
-    margin-block-start: 0.9rem;
-    gap: 0.45rem;
+    margin-block-start: 1.1rem;
+    gap: 0.55rem;
   }
 
   .stat {
     min-width: 0;
-    flex: 1 1 calc(50% - 0.25rem);
+    flex: 1 1 calc(50% - 0.3rem);
     max-width: none;
-    padding: 0.5rem 0.6rem;
-    background: rgba(57, 213, 242, 0.08);
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.85rem;
+    background: linear-gradient(
+      160deg,
+      rgba(57, 213, 242, 0.12),
+      rgba(14, 22, 28, 0.55)
+    );
+    border-color: color-mix(in srgb, #39d5f2 20%, transparent);
   }
 
   .stat-num {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
+  }
+
+  .stat-label {
+    font-size: 0.55rem;
+    margin-top: 0.35rem;
   }
 
   .cta-row {
-    margin-block-start: 0.95rem;
-    gap: 0.45rem;
+    margin-block-start: 1.15rem;
+    gap: 0.55rem;
   }
 
   .text-card .cube-btn,
   .cta-row .cube-btn {
-    flex: 1 1 calc(50% - 0.25rem);
+    flex: 1 1 100%;
     justify-content: center;
-    min-height: 2.75rem;
-    padding: 0.55rem 0.65rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
+    min-height: 3rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    border-radius: 999px;
+  }
+
+  .text-card .cube-btn-ghost,
+  .cta-row .cube-btn-ghost {
+    flex: 1 1 100%;
+    background: rgba(57, 213, 242, 0.06);
   }
 
   .cube-footer {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 1.35rem 0.75rem max(1.35rem, env(safe-area-inset-bottom));
-    gap: 0.65rem;
+    padding: 1.5rem 1rem max(1.5rem, env(safe-area-inset-bottom));
+    gap: 0.75rem;
     font-size: 0.62rem;
     overflow-x: clip;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Feature bands polish */
+  .cube-beyond-head h2 {
+    font-size: clamp(1.85rem, 8vw, 2.4rem);
+  }
+
+  .cube-beyond-head p {
+    font-size: 0.9rem;
+  }
+
+  .feature-card,
+  .usecase-card,
+  .flow-step {
+    border-radius: 1.15rem;
+    padding: 1.35rem 1.2rem;
+  }
+
+  .feature-card h3,
+  .usecase-card h3,
+  .flow-step h3 {
+    font-size: 1.2rem;
+  }
+
+  .final-cta-band {
+    border-radius: 1.35rem;
+  }
+
+  .final-cta-band .cta-row .cube-btn {
+    flex: 1 1 100%;
+    border-radius: 999px;
+    min-height: 3rem;
   }
 }
 
-@media (width <= 56.25em) and (max-height: 720px) {
+/* Short phones: keep cube visible but slightly smaller */
+@media (width <= 56.25em) and (max-height: 740px) {
   .cube-landing {
-    --mobile-cube: min(56vw, 24dvh, 210px);
+    --mobile-cube: min(48vw, 28dvh, 230px);
   }
 
   .cube-scene {
-    padding-top: max(4rem, calc(env(safe-area-inset-top) + 3rem));
-    padding-bottom: 50svh;
-    perspective-origin: 50% 22%;
-  }
-
-  .cube-strip--mobile {
-    top: calc(
-      max(4rem, env(safe-area-inset-top) + 3rem) + var(--mobile-cube) + 0.55rem
+    padding-top: calc(
+      max(4.2rem, env(safe-area-inset-top) + 3.2rem) + 0.15rem
     );
+    padding-bottom: 52svh;
+    perspective-origin: 50% 24%;
   }
 
   .cube-section {
     padding-top: calc(
-      max(4rem, env(safe-area-inset-top) + 3rem) + var(--mobile-cube) + 2rem
+      max(4.2rem, env(safe-area-inset-top) + 3.2rem) + var(--mobile-cube) +
+        0.85rem
+    );
+    padding-bottom: calc(
+      max(0.75rem, env(safe-area-inset-bottom)) + 5.4rem
     );
   }
 
   .text-card-body,
   .text-card.right .text-card-body,
   .text-card.center .text-card-body {
-    padding: 0.9rem 0.85rem 0.85rem 1rem;
+    padding: 1.15rem 1.1rem 1.1rem 1.4rem;
   }
 
   .text-card h1 {
-    font-size: clamp(1.55rem, 6.5vw, 1.95rem);
+    font-size: clamp(1.75rem, 7.2vw, 2.15rem);
   }
 
   .text-card h2 {
-    font-size: clamp(1.25rem, 5.5vw, 1.6rem);
+    font-size: clamp(1.45rem, 6.2vw, 1.85rem);
   }
 
   .body-text {
-    font-size: 0.68rem;
-    margin-block-start: 0.55rem;
+    font-size: 0.82rem;
+    margin-block-start: 0.65rem;
   }
 
   .stat-row,
   .cta-row {
-    margin-block-start: 0.7rem;
+    margin-block-start: 0.85rem;
   }
 
   .text-card .cube-btn,
   .cta-row .cube-btn {
-    min-height: 2.5rem;
+    min-height: 2.75rem;
+  }
+
+  .mobile-face-dock-hint {
+    display: none;
+  }
+
+  .mobile-face-dock-inner {
+    grid-template-columns: auto 1fr;
+  }
+}
+
+@media (width <= 56.25em) and (max-height: 640px) {
+  .cube-landing {
+    --mobile-cube: min(42vw, 24dvh, 190px);
+  }
+
+  .stat-row {
+    display: none;
+  }
+
+  .body-text {
+    font-size: 0.78rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
 @media (width <= 380px) {
   .cube-top-cta .cube-btn {
-    min-height: 2.35rem;
-    padding: 0.4rem 0.55rem;
-    font-size: 0.52rem;
-    letter-spacing: 0.08em;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
   }
 
   .cube-brand {
-    font-size: 1.05rem;
+    font-size: 1.2rem;
   }
 
   .cube-topnav {
-    max-width: calc(100% - 10.25rem);
+    max-width: calc(100% - 8.5rem);
+  }
+
+  .mobile-face-dock-name {
+    font-size: 0.85rem;
   }
 }
 

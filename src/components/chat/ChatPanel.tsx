@@ -350,8 +350,8 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   return (
     <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.9fr)] lg:gap-4">
-      <section className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[var(--panel)]/90 shadow-sm backdrop-blur md:rounded-2xl md:border">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 sm:px-4 sm:py-3">
+      <section className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_92%,transparent)] shadow-[0_18px_48px_-28px_rgba(0,0,0,0.45)] backdrop-blur-xl md:rounded-2xl md:border">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-3 sm:px-4 sm:py-3.5">
           <div className="min-w-0">
             <h1 className="font-display text-xl tracking-tight sm:text-2xl">
               AI Control

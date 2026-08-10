@@ -12,12 +12,18 @@ type BadgeTone =
   | "info";
 
 const tones: Record<BadgeTone, string> = {
-  neutral: "bg-[var(--panel-elevated)] text-[var(--muted)] border-[var(--border)]",
-  accent: "bg-[var(--accent-soft)] text-[var(--accent)] border-[color-mix(in_srgb,var(--accent)_35%,transparent)]",
-  success: "bg-[var(--success-soft)] text-[var(--success)] border-[color-mix(in_srgb,var(--success)_35%,transparent)]",
-  warning: "bg-[var(--warning-soft)] text-[var(--warning)] border-[color-mix(in_srgb,var(--warning)_35%,transparent)]",
-  danger: "bg-[var(--danger-soft)] text-[var(--danger)] border-[color-mix(in_srgb,var(--danger)_35%,transparent)]",
-  info: "bg-[var(--accent-soft)] text-[var(--accent-strong)] border-[color-mix(in_srgb,var(--accent)_30%,transparent)]",
+  neutral:
+    "bg-[var(--panel-elevated)] text-[var(--muted)] border-[var(--border)]",
+  accent:
+    "bg-[var(--accent-soft)] text-[var(--accent)] border-[color-mix(in_srgb,var(--accent)_32%,transparent)]",
+  success:
+    "bg-[var(--success-soft)] text-[var(--success)] border-[color-mix(in_srgb,var(--success)_32%,transparent)]",
+  warning:
+    "bg-[var(--warning-soft)] text-[var(--warning)] border-[color-mix(in_srgb,var(--warning)_32%,transparent)]",
+  danger:
+    "bg-[var(--danger-soft)] text-[var(--danger)] border-[color-mix(in_srgb,var(--danger)_32%,transparent)]",
+  info:
+    "bg-[var(--accent-soft)] text-[var(--accent-strong)] border-[color-mix(in_srgb,var(--accent)_28%,transparent)]",
 };
 
 export function Badge({
@@ -33,7 +39,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold tracking-wide",
+        "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium tracking-wide",
         tones[tone],
         className,
       )}

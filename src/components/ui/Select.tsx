@@ -231,7 +231,7 @@ export function Select({
             onKeyDown={onListKeyDown}
             style={menuStyle}
             className={cn(
-              "overflow-auto rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] p-1 shadow-[0_18px_40px_-18px_rgba(17,23,27,0.5)] outline-none",
+              "overflow-auto rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] p-1 shadow-[0_20px_48px_-18px_rgba(0,0,0,0.7)] outline-none",
               "animate-fade-in",
             )}
           >

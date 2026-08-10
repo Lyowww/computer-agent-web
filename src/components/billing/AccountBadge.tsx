@@ -31,9 +31,9 @@ export function AccountBadge({
     return (
       <Link
         href="/billing/"
-        className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1 text-xs text-[var(--muted)] hover:text-[var(--fg)]"
+        className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1.5 text-xs text-[var(--muted)] transition hover:border-[var(--accent)]/35 hover:text-[var(--fg)]"
       >
-        <Badge tone="neutral" className="px-1.5 py-0 text-[10px]">
+        <Badge tone="accent" className="px-1.5 py-0 text-[10px]">
           {showTypeSeparately ? `${typeLabel} · ${planLabel}` : planLabel}
         </Badge>
         <span className="font-mono-ui">{devices}</span>
@@ -44,15 +44,15 @@ export function AccountBadge({
   return (
     <Link
       href="/billing/"
-      className="block rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)]/70 px-3 py-2.5 transition hover:border-[var(--accent)]/40"
+      className="block rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3.5 py-3 transition hover:border-[var(--accent)]/40"
     >
-      <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+      <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
         {typeLabel}
       </p>
-      <p className="mt-0.5 text-sm font-medium text-[var(--fg)]">{planLabel}</p>
-      <p className="mt-1 font-mono-ui text-xs text-[var(--muted)]">{devices}</p>
+      <p className="mt-1 text-sm font-medium text-[var(--fg)]">{planLabel}</p>
+      <p className="mt-1.5 font-mono-ui text-xs text-[var(--muted)]">{devices}</p>
       {account.limitState === "OVER_LIMIT" ? (
-        <p className="mt-1 text-[11px] text-[var(--warning)]">Over device limit</p>
+        <p className="mt-1.5 text-[11px] text-[var(--warning)]">Over device limit</p>
       ) : null}
     </Link>
   );

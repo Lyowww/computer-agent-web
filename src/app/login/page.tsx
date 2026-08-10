@@ -71,7 +71,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-[var(--bg)]">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(57,213,242,0.16),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(99,230,173,0.12),transparent_40%),linear-gradient(160deg,#f1ece2,#e8e2d4_45%,#ddd6c6)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(57,213,242,0.14),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(99,230,173,0.1),transparent_40%),linear-gradient(160deg,#05080b,#070b0e_45%,#0a1016)]" />
         <div className="atmosphere-grid absolute inset-0 opacity-50" />
       </div>
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={(e) => void onSubmit(e)}
-          className="w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--panel)]/90 p-5 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-6"
+          className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--panel-elevated)_92%,transparent)] p-5 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:rounded-3xl sm:p-7"
         >
           <div className="mb-4 flex items-start gap-3 rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] p-3">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
@@ -113,13 +113,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mb-5 flex rounded-xl bg-[var(--panel-elevated)] p-1">
+          <div className="mb-5 flex rounded-xl border border-[var(--border)] bg-[var(--bg)] p-1">
             <button
               type="button"
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 mode === "login"
-                  ? "bg-[var(--panel)] text-[var(--fg)] shadow-sm"
-                  : "text-[var(--muted)]"
+                  ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent)]"
+                  : "text-[var(--muted)] hover:text-[var(--fg)]"
               }`}
               onClick={() => setMode("login")}
             >
@@ -127,10 +127,10 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 mode === "register"
-                  ? "bg-[var(--panel)] text-[var(--fg)] shadow-sm"
-                  : "text-[var(--muted)]"
+                  ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent)]"
+                  : "text-[var(--muted)] hover:text-[var(--fg)]"
               }`}
               onClick={() => setMode("register")}
             >

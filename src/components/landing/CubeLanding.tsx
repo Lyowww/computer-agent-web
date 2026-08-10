@@ -544,7 +544,7 @@ export function CubeLanding({
       scene.style.visibility = pastCube ? "hidden" : "visible";
     }
     document.querySelectorAll<HTMLElement>(
-      ".cube-hud, .cube-caption, .cube-strip",
+      ".cube-hud, .cube-caption, .cube-strip:not(.cube-strip--mobile), .mobile-face-dock",
     ).forEach((el) => {
       el.style.opacity = pastCube ? "0" : "1";
       el.style.pointerEvents = pastCube ? "none" : "";
@@ -686,18 +686,34 @@ export function CubeLanding({
         ))}
       </nav>
 
-      <nav className="cube-strip cube-strip--mobile" aria-label="Faces mobile">
-        {FACE_NAMES.map((name, i) => (
-          <button
-            key={`m-${name}`}
-            type="button"
-            className={`cube-dot${activeFace === i ? " active" : ""}`}
-            aria-label={`Go to ${name}`}
-            aria-current={activeFace === i ? "true" : undefined}
-            onClick={() => jumpTo(i)}
-          />
-        ))}
-      </nav>
+      <div className="mobile-face-dock">
+        <div className="mobile-face-dock-inner">
+          <span className="mobile-face-dock-num" aria-hidden>
+            {String(activeFace + 1).padStart(2, "0")}
+            <em>/06</em>
+          </span>
+          <div className="mobile-face-dock-mid">
+            <span className="mobile-face-dock-name" aria-hidden>
+              {FACE_NAMES[activeFace]}
+            </span>
+            <nav className="cube-strip cube-strip--mobile" aria-label="Faces mobile">
+              {FACE_NAMES.map((name, i) => (
+                <button
+                  key={`m-${name}`}
+                  type="button"
+                  className={`cube-dot${activeFace === i ? " active" : ""}`}
+                  aria-label={`Go to ${name}`}
+                  aria-current={activeFace === i ? "true" : undefined}
+                  onClick={() => jumpTo(i)}
+                />
+              ))}
+            </nav>
+          </div>
+          <span className="mobile-face-dock-hint" aria-hidden>
+            Scroll
+          </span>
+        </div>
+      </div>
 
       <div className="cube-caption" aria-hidden>
         <div className="cube-caption-num" ref={captionNumRef}>

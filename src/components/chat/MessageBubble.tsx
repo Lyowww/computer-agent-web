@@ -13,7 +13,8 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[80%]",
-          isUser && "bg-[var(--accent)] text-white shadow-[0_8px_24px_-12px_var(--accent-glow)]",
+          isUser &&
+            "bg-[linear-gradient(135deg,#5ae0f7_0%,#39d5f2_48%,#2bb8d4_100%)] text-[#041016] shadow-[0_10px_28px_-14px_var(--accent-glow)]",
           !isUser &&
             !isSystem &&
             "border border-[var(--border)] bg-[var(--panel-elevated)] text-[var(--fg)]",
@@ -21,11 +22,11 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             "border border-[color-mix(in_srgb,var(--warning)_35%,transparent)] bg-[var(--warning-soft)] text-[var(--warning)]",
         )}
       >
-        <p className="mb-1 text-[10px] uppercase tracking-wide opacity-70">
+        <p className="mb-1.5 text-[10px] uppercase tracking-[0.12em] opacity-70">
           {isUser ? "You" : isSystem ? "System" : "AI"}
         </p>
         <p className="whitespace-pre-wrap">{message.content}</p>
-        <p className="mt-2 text-[10px] opacity-60">
+        <p className="mt-2.5 text-[10px] opacity-60">
           {format(new Date(message.createdAt), "HH:mm:ss")}
         </p>
       </div>

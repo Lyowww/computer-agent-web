@@ -158,10 +158,10 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="space-y-4 sm:space-y-6">
-        <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <div className="space-y-6 sm:space-y-8">
+        <header className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <h1 className="font-display text-2xl tracking-tight sm:text-3xl md:text-4xl">
+            <h1 className="font-display text-3xl tracking-tight sm:text-4xl">
               {(() => {
                 const hour = new Date().getHours();
                 const greeting =
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                 return greeting;
               })()}
             </h1>
-            <p className="mt-1 text-sm text-[var(--muted)] sm:text-base">
+            <p className="mt-2 text-sm leading-relaxed text-[var(--muted)] sm:text-base">
               Your machines are ready.{" "}
               <span className="text-[var(--fg)]">
                 {onlineCount} device{onlineCount === 1 ? "" : "s"} online
@@ -185,18 +185,20 @@ export default function DashboardPage() {
           </Badge>
         </header>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           {metrics.map((m) => {
             const Icon = m.icon;
             return (
               <Card key={m.label} padding="sm" className="min-w-0">
                 <div className="flex items-center gap-2 text-[var(--muted)]">
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate text-[10px] uppercase tracking-wide sm:text-xs">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                  </span>
+                  <span className="truncate text-[10px] uppercase tracking-[0.12em] sm:text-xs">
                     {m.label}
                   </span>
                 </div>
-                <p className="mt-2 font-display text-2xl tracking-tight sm:text-3xl">
+                <p className="mt-3 font-display text-2xl tracking-tight sm:text-3xl">
                   {m.value}
                 </p>
               </Card>
@@ -224,13 +226,15 @@ export default function DashboardPage() {
           />
         ) : devicesWithTasks.length === 0 ? (
           <Card className="border-dashed text-center" padding="lg">
-            <p className="font-display text-xl tracking-tight">No devices connected.</p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
+            <p className="font-display text-xl tracking-tight sm:text-2xl">
+              No devices connected.
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--muted)]">
               Install the PetAI desktop agent to connect your first computer.
             </p>
             <a
               href="/devices/"
-              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-white"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#5ae0f7_0%,#39d5f2_48%,#2bb8d4_100%)] px-5 text-sm font-semibold text-[#041016] shadow-[0_10px_28px_-14px_var(--accent-glow)]"
             >
               Connect Device
             </a>
@@ -253,9 +257,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold sm:text-lg">Recent media</h2>
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-lg tracking-tight sm:text-xl">
+              Recent media
+            </h2>
             <div className="flex rounded-xl border border-[var(--border)] bg-[var(--panel)] p-1">
               {(
                 [
@@ -268,9 +274,9 @@ export default function DashboardPage() {
                   type="button"
                   onClick={() => setMediaTab(id)}
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                    "rounded-lg px-3.5 py-2 text-xs font-medium transition",
                     mediaTab === id
-                      ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                      ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_25%,transparent)]"
                       : "text-[var(--muted)] hover:text-[var(--fg)]",
                   )}
                 >

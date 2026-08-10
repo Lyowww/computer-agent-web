@@ -10,7 +10,7 @@ export function DeviceStatePanel({
   processes: ProcessInfo[];
 }) {
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--panel)]/85 p-4 shadow-sm">
+    <section className="rounded-2xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_92%,transparent)] p-5 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.55)]">
       <h2 className="font-display text-lg tracking-tight">
         Device state
       </h2>
@@ -26,7 +26,10 @@ export function DeviceStatePanel({
           <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-sm">
             {apps.length ? (
               apps.map((app) => (
-                <li key={app.name} className="truncate rounded-lg bg-white/70 px-2 py-1">
+                <li
+                  key={app.name}
+                  className="truncate rounded-lg border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1.5"
+                >
                   {app.name}
                 </li>
               ))
@@ -44,7 +47,7 @@ export function DeviceStatePanel({
               processes.map((proc) => (
                 <li
                   key={`${proc.pid}-${proc.name}`}
-                  className="flex justify-between gap-2 rounded-lg bg-white/70 px-2 py-1"
+                  className="flex justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1.5"
                 >
                   <span className="truncate">{proc.name}</span>
                   <span className="shrink-0 text-[var(--muted)]">

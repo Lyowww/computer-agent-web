@@ -48,7 +48,7 @@ export function UpgradeDialog({
         : "Choose a plan that fits your workspace.");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,#04070a_72%,transparent)] p-4 backdrop-blur-sm sm:items-center">
       <button
         type="button"
         className="absolute inset-0 cursor-default"

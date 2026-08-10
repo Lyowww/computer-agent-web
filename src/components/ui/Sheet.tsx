@@ -38,7 +38,7 @@ export function Sheet({
       <button
         type="button"
         aria-label="Close overlay"
-        className="absolute inset-0 bg-[color-mix(in_srgb,var(--graphite)_35%,transparent)] backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-[color-mix(in_srgb,#04070a_72%,transparent)] backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
       <div
@@ -46,7 +46,7 @@ export function Sheet({
         aria-modal="true"
         aria-label={title || "Sheet"}
         className={cn(
-          "relative z-10 w-full max-w-lg animate-sheet-up rounded-t-3xl border border-[var(--border)] bg-[var(--panel)] shadow-2xl sm:animate-fade-in sm:rounded-3xl",
+          "relative z-10 w-full max-w-lg animate-sheet-up rounded-t-3xl border border-[var(--border)] bg-[var(--panel-elevated)] shadow-[0_24px_64px_-24px_rgba(0,0,0,0.7)] sm:animate-fade-in sm:rounded-3xl",
           "pb-[env(safe-area-inset-bottom)]",
           className,
         )}

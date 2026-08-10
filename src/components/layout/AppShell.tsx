@@ -79,22 +79,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <AuthGuard>
       <div className="min-h-[100dvh] overflow-x-hidden bg-[var(--bg)] text-[var(--fg)]">
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute -left-24 top-0 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(57,213,242,0.16),transparent_70%)] blur-2xl" />
-          <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(99,230,173,0.12),transparent_70%)] blur-2xl" />
+          <div className="absolute -left-28 top-[-4rem] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(57,213,242,0.14),transparent_70%)] blur-3xl" />
+          <div className="absolute bottom-[-6rem] right-[-4rem] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,rgba(99,230,173,0.1),transparent_70%)] blur-3xl" />
           <div
-            className="absolute inset-0 opacity-35"
+            className="absolute inset-0 opacity-40"
             style={{
               backgroundImage:
-                "radial-gradient(rgba(28,39,45,0.12) 1px, transparent 1px)",
-              backgroundSize: "22px 22px",
+                "radial-gradient(rgba(57,213,242,0.09) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+              maskImage:
+                "radial-gradient(ellipse at center, black 20%, transparent 75%)",
             }}
           />
         </div>
 
         <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[1600px] flex-col md:flex-row">
-          <aside className="hidden w-64 shrink-0 border-r border-[var(--border)] bg-[var(--panel)]/75 backdrop-blur-md md:flex md:flex-col lg:w-72 xl:w-80">
+          <aside className="hidden w-64 shrink-0 border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_88%,transparent)] backdrop-blur-xl md:flex md:flex-col lg:w-72 xl:w-80">
             <div className="relative border-b border-[var(--border)] px-5 py-6">
-              <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[var(--accent)]/50 to-transparent" />
+              <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[var(--accent)]/55 to-transparent" />
               <p className="font-display text-2xl tracking-tight text-[var(--fg)]">
                 PETAI
               </p>
@@ -103,7 +105,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <AccountBadge account={account.data} />
               </div>
             </div>
-            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="App">
+            <nav
+              className="flex flex-1 flex-col gap-1 overflow-y-auto p-3"
+              aria-label="App"
+            >
               {desktopNav.map((item) => {
                 const Icon = item.icon;
                 const active = pathname.startsWith(item.href);
@@ -112,7 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={`${item.href}/`}
                     className={cn(
-                      "group relative flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                      "group relative flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
                       active
                         ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_30%,transparent)]"
                         : "text-[var(--muted)] hover:bg-[var(--panel-elevated)] hover:text-[var(--fg)]",
@@ -121,7 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     {active ? (
                       <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent-glow)]" />
                     ) : null}
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 shrink-0 opacity-90" />
                     {item.label}
                   </Link>
                 );
@@ -132,13 +137,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Radio
                   className={cn(
                     "h-3.5 w-3.5",
-                    wsConnected ? "text-[var(--success)]" : "text-[var(--warning)]",
+                    wsConnected
+                      ? "text-[var(--success)]"
+                      : "text-[var(--warning)]",
                   )}
                 />
                 {wsConnected ? "Live connection" : "Reconnecting…"}
               </div>
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--accent-soft)] font-mono-ui text-xs font-semibold text-[var(--accent)]">
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)]/70 px-3 py-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--accent)_28%,transparent)] bg-[var(--accent-soft)] font-mono-ui text-xs font-semibold text-[var(--accent)]">
                   {initials(user?.name, user?.email)}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -148,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <button
                     type="button"
                     onClick={logout}
-                    className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--fg)]"
+                    className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-[var(--muted)] transition hover:text-[var(--fg)]"
                   >
                     <LogOut className="h-3 w-3" />
                     Sign out
@@ -164,10 +171,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               "pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-0",
             )}
           >
-            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--panel)]/90 px-4 py-3 backdrop-blur-md pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
+            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_90%,transparent)] px-4 py-3 backdrop-blur-xl pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
               <div className="min-w-0">
                 <p className="font-display text-lg leading-tight">PETAI</p>
-                <div className="mt-0.5 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-2">
                   <Badge
                     tone={wsConnected ? "success" : "warning"}
                     pulse={wsConnected}
@@ -202,7 +209,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--panel)]/95 backdrop-blur-md md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[color-mix(in_srgb,var(--panel)_94%,transparent)] backdrop-blur-xl md:hidden"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           aria-label="Mobile"
         >

@@ -11,15 +11,15 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const paddings = {
   none: "",
-  sm: "p-3 sm:p-4",
-  md: "p-4 sm:p-5",
-  lg: "p-5 sm:p-6",
+  sm: "p-4",
+  md: "p-5",
+  lg: "p-6 sm:p-7",
 };
 
 export function Card({
   className,
   elevated = false,
-  noise = true,
+  noise = false,
   padding = "md",
   children,
   ...props
@@ -28,8 +28,10 @@ export function Card({
     <div
       className={cn(
         "relative overflow-hidden rounded-2xl border border-[var(--border)]",
-        elevated ? "bg-[var(--panel-elevated)]" : "bg-[var(--panel)]/90",
-        "shadow-[0_1px_0_0_rgba(255,255,255,0.8)_inset,0_12px_40px_-24px_rgba(23,33,38,0.12)]",
+        elevated
+          ? "bg-[var(--panel-elevated)]"
+          : "bg-[color-mix(in_srgb,var(--panel)_92%,transparent)]",
+        "shadow-[0_18px_48px_-28px_rgba(0,0,0,0.55),0_1px_0_0_rgba(57,213,242,0.06)_inset]",
         paddings[padding],
         className,
       )}
@@ -38,7 +40,7 @@ export function Card({
       {noise ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-60 panel-noise mix-blend-overlay"
+          className="pointer-events-none absolute inset-0 opacity-40 panel-noise mix-blend-overlay"
         />
       ) : null}
       <div className="relative">{children}</div>
@@ -50,7 +52,12 @@ export function CardHeader({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("mb-3 flex items-start justify-between gap-3", className)} {...props} />;
+  return (
+    <div
+      className={cn("mb-4 flex items-start justify-between gap-3", className)}
+      {...props}
+    />
+  );
 }
 
 export function CardTitle({

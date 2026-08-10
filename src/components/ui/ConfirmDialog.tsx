@@ -34,12 +34,12 @@ export function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--graphite)_40%,transparent)] p-4 backdrop-blur-sm animate-fade-in sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,#04070a_72%,transparent)] p-4 backdrop-blur-sm animate-fade-in sm:items-center">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="w-full max-w-md animate-sheet-up rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-5 shadow-2xl sm:animate-fade-in"
+        className="w-full max-w-md animate-sheet-up rounded-2xl border border-[var(--border)] bg-[var(--panel-elevated)] p-6 shadow-[0_24px_64px_-24px_rgba(0,0,0,0.7)] sm:animate-fade-in"
       >
         <h2
           id="confirm-title"

@@ -11,16 +11,17 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export function Input({ className, label, error, id, ...props }: InputProps) {
   const inputId = id || props.name;
   return (
-    <label className="block space-y-1.5">
+    <label className="block space-y-2">
       {label ? (
         <span className="text-sm font-medium text-[var(--fg)]">{label}</span>
       ) : null}
       <input
         id={inputId}
         className={cn(
-          "w-full rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-2.5 text-sm text-[var(--fg)] outline-none transition placeholder:text-[var(--muted)]",
+          "w-full rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3.5 py-2.5 text-sm text-[var(--fg)] outline-none transition placeholder:text-[var(--muted-dim)]",
           "focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]",
-          error && "border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger-soft)]",
+          error &&
+            "border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger-soft)]",
           className,
         )}
         {...props}

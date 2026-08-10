@@ -54,13 +54,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={item.id}
             className={cn(
-              "pointer-events-auto flex w-full max-w-sm animate-toast-in items-start gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md",
+              "pointer-events-auto flex w-full max-w-sm animate-toast-in items-start gap-3 rounded-2xl border px-4 py-3 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.65)] backdrop-blur-md",
               item.tone === "success" &&
-                "border-[color-mix(in_srgb,var(--success)_40%,transparent)] bg-[color-mix(in_srgb,var(--panel)_92%,var(--success))]",
+                "border-[color-mix(in_srgb,var(--success)_40%,transparent)] bg-[color-mix(in_srgb,var(--panel-elevated)_92%,transparent)]",
               item.tone === "error" &&
-                "border-[color-mix(in_srgb,var(--danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--panel)_92%,var(--danger))]",
+                "border-[color-mix(in_srgb,var(--danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--panel-elevated)_92%,transparent)]",
               item.tone === "info" &&
-                "border-[var(--border)] bg-[var(--panel)]/95",
+                "border-[var(--border)] bg-[color-mix(in_srgb,var(--panel-elevated)_94%,transparent)]",
             )}
           >
             {item.tone === "success" ? (
