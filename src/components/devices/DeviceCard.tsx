@@ -66,7 +66,7 @@ export function DeviceCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link
-            href={`/devices/${device.id}`}
+            href={`/devices/detail/?deviceId=${device.id}`}
             className="group block min-w-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             <h3 className="truncate font-display text-lg tracking-tight group-hover:text-[var(--accent-strong)] sm:text-xl">
@@ -106,7 +106,10 @@ export function DeviceCard({
       ) : null}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <Link href={`/devices/${device.id}`} className="col-span-2">
+        <Link
+          href={`/devices/detail/?deviceId=${device.id}`}
+          className="col-span-2"
+        >
           <Button size="sm" variant="outline" className="w-full">
             Device details
           </Button>

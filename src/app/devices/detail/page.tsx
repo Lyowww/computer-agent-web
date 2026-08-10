@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -38,9 +38,10 @@ import {
   formatTimestamp,
   formatUptime,
 } from "@/lib/utils/format";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { FeatureGate } from "@/components/billing/FeatureGate";
 import { useEntitlement } from "@/hooks/useAccount";
+import { Spinner } from "@/components/ui/Spinner";
 
 function DeviceDetailSkeleton() {
   return (
@@ -56,9 +57,9 @@ function DeviceDetailSkeleton() {
   );
 }
 
-export default function DeviceDetailPage() {
-  const params = useParams<{ deviceId: string }>();
-  const deviceId = params.deviceId;
+function DeviceDetailInner() {
+  const searchParams = useSearchParams();
+  const deviceId = searchParams.get("deviceId") || "";
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [revokeOpen, setRevokeOpen] = useState(false);
@@ -90,6 +91,22 @@ export default function DeviceDetailPage() {
     },
   });
 
+  if (!deviceId) {
+    return (
+      <AppShell>
+        <div className="space-y-4">
+          <Link href="/devices/">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+              Devices
+            </Button>
+          </Link>
+          <EmptyHint>Select a device to view details.</EmptyHint>
+        </div>
+      </AppShell>
+    );
+  }
+
   const device = detailQuery.data;
   const networkAllowed = useEntitlement("networkInformation");
   const locationAllowed = useEntitlement("locationInformation");
@@ -116,7 +133,7 @@ export default function DeviceDetailPage() {
     <AppShell>
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/devices">
+          <Link href="/devices/">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4" />
               Devices
@@ -517,5 +534,21 @@ export default function DeviceDetailPage() {
         onConfirm={() => regenMutation.mutate()}
       />
     </AppShell>
+  );
+}
+
+export default function DeviceDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell>
+          <div className="flex items-center gap-2 text-[var(--muted)]">
+            <Spinner /> Loading device…
+          </div>
+        </AppShell>
+      }
+    >
+      <DeviceDetailInner />
+    </Suspense>
   );
 }
