@@ -282,11 +282,18 @@ select {
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .select-field:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Hide leftover native select chrome if any remain */
+select.select-field {
+  background-image: none;
 }
 
 .font-display {

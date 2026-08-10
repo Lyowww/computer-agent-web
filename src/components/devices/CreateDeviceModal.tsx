@@ -7,6 +7,7 @@ import { createDeviceSchema } from "@/lib/validators/schemas";
 import type { DeviceOs } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
@@ -93,18 +94,16 @@ export function CreateDeviceModal({
             placeholder="My MacBook Pro"
             required
           />
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium">Operating system</span>
-            <select
-              value={os}
-              onChange={(e) => setOs(e.target.value as DeviceOs)}
-              className="select-field"
-            >
-              <option value="darwin">macOS</option>
-              <option value="win32">Windows</option>
-              <option value="linux">Linux</option>
-            </select>
-          </label>
+          <Select
+            label="Operating system"
+            value={os}
+            onChange={(next) => setOs(next as DeviceOs)}
+            options={[
+              { value: "darwin", label: "macOS" },
+              { value: "win32", label: "Windows" },
+              { value: "linux", label: "Linux" },
+            ]}
+          />
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={close}>
               Cancel

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { Card } from "@/components/ui/Card";
+import { Select } from "@/components/ui/Select";
 import { LockControls } from "@/components/devices/LockControls";
 import { useToast } from "@/components/ui/Toast";
 
@@ -193,20 +194,20 @@ export default function AppsPage() {
             Device
           </label>
           <div className="mt-2 flex min-w-0 items-center gap-3">
-            <select
+            <Select
+              className="min-w-0 flex-1"
+              aria-label="Select device"
               value={selectedDeviceId ?? ""}
-              onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="select-field min-w-0 flex-1"
-            >
-              <option value="" disabled>
-                Select device
-              </option>
-              {devicesQuery.data?.map((device) => (
-                <option key={device.id} value={device.id}>
-                  {device.name} ({device.connectionStatus})
-                </option>
-              ))}
-            </select>
+              onChange={(next) => setSelectedDeviceId(next || null)}
+              placeholder="Select device"
+              options={
+                devicesQuery.data?.map((device) => ({
+                  value: device.id,
+                  label: device.name,
+                  description: device.connectionStatus,
+                })) ?? []
+              }
+            />
             {selectedDevice ? (
               <div className="shrink-0">
                 <StatusDot status={selectedDevice.connectionStatus} />

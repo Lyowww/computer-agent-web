@@ -24,6 +24,7 @@ import { StatusDot } from "@/components/ui/StatusDot";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 
 export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
@@ -349,7 +350,7 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
 
   return (
     <div className="flex h-[calc(100dvh-7.75rem)] flex-col gap-3 sm:h-[calc(100dvh-8rem)] md:h-[calc(100dvh-3rem)] lg:grid lg:h-[calc(100dvh-3rem)] lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.9fr)] lg:gap-4">
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[var(--panel)]/90 shadow-sm backdrop-blur md:rounded-2xl md:border">
+      <section className="relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden border-y border-[var(--border)] bg-[var(--panel)]/90 shadow-sm backdrop-blur md:rounded-2xl md:border">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="min-w-0">
             <h1 className="font-display text-xl tracking-tight sm:text-2xl">
@@ -401,20 +402,20 @@ export function ChatPanel({ initialDeviceId }: { initialDeviceId?: string }) {
             Device
           </label>
           <div className="mt-1 flex items-center gap-2 sm:gap-3">
-            <select
+            <Select
+              className="flex-1"
+              aria-label="Select device"
               value={selectedDeviceId ?? ""}
-              onChange={(e) => setSelectedDeviceId(e.target.value || null)}
-              className="select-field flex-1"
-            >
-              <option value="" disabled>
-                Select device
-              </option>
-              {devicesQuery.data?.map((device) => (
-                <option key={device.id} value={device.id}>
-                  {device.name} ({device.connectionStatus})
-                </option>
-              ))}
-            </select>
+              onChange={(next) => setSelectedDeviceId(next || null)}
+              placeholder="Select device"
+              options={
+                devicesQuery.data?.map((device) => ({
+                  value: device.id,
+                  label: device.name,
+                  description: device.connectionStatus,
+                })) ?? []
+              }
+            />
             {selectedDevice ? <StatusDot status={selectedDevice.connectionStatus} /> : null}
           </div>
         </div>
