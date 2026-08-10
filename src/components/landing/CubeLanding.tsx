@@ -175,7 +175,6 @@ function TextCard({
       className={`text-card${align === "right" ? " right" : ""}${align === "center" ? " center" : ""}`}
     >
       <div className="text-card-glow" aria-hidden />
-      <div className="text-card-rail" aria-hidden />
       <div className="text-card-frame" aria-hidden>
         <span className="tc-corner tc-tl" />
         <span className="tc-corner tc-tr" />
@@ -266,15 +265,17 @@ const OPERATE_SCENES = [
 
 function OperateCrtScreen({
   compact = false,
+  face = false,
 }: {
   compact?: boolean;
+  face?: boolean;
 }) {
   const reduced = usePrefersReducedMotion();
   const [sceneIndex, setSceneIndex] = useState(0);
   const [visibleLines, setVisibleLines] = useState(1);
   const [flicker, setFlicker] = useState(false);
   const scene = OPERATE_SCENES[sceneIndex] ?? OPERATE_SCENES[0];
-  const maxLines = compact ? Math.min(3, scene.lines.length) : scene.lines.length;
+  const maxLines = face || compact ? Math.min(3, scene.lines.length) : scene.lines.length;
   const lines = scene.lines.slice(0, maxLines);
 
   useEffect(() => {
@@ -285,18 +286,18 @@ function OperateCrtScreen({
 
     setVisibleLines(1);
     setFlicker(true);
-    const flickerOff = window.setTimeout(() => setFlicker(false), 160);
+    const flickerOff = window.setTimeout(() => setFlicker(false), 140);
 
     const lineTimers: number[] = [];
     for (let i = 1; i < maxLines; i += 1) {
       lineTimers.push(
-        window.setTimeout(() => setVisibleLines(i + 1), i * 850),
+        window.setTimeout(() => setVisibleLines(i + 1), i * 900),
       );
     }
 
     const sceneTimer = window.setTimeout(() => {
       setSceneIndex((i) => (i + 1) % OPERATE_SCENES.length);
-    }, Math.max(3800, maxLines * 850 + 1400));
+    }, Math.max(3600, maxLines * 900 + 1200));
 
     return () => {
       window.clearTimeout(flickerOff);
@@ -307,50 +308,41 @@ function OperateCrtScreen({
 
   return (
     <div
-      className={`operate-crt${compact ? " operate-crt--compact" : ""}${flicker ? " is-flicker" : ""}`}
+      className={`operate-crt${compact ? " operate-crt--compact" : ""}${face ? " operate-crt--face" : ""}${flicker ? " is-flicker" : ""}`}
       aria-live="polite"
     >
-      <div className="operate-crt-bezel">
-        <div className="operate-crt-screen">
-          <div className="operate-crt-scanlines" aria-hidden />
-          <div className="operate-crt-roll" aria-hidden />
-          <div className="operate-crt-vignette" aria-hidden />
-          <div className="operate-crt-header">
-            <span className="operate-crt-channel">{scene.channel} · LIVE</span>
-            <span className="operate-crt-signal">
-              <i />
-              ON
-            </span>
-          </div>
-          <p className="operate-crt-title">{scene.title}</p>
-          <ul className="operate-crt-lines">
-            {lines.slice(0, visibleLines).map((line, i) => (
-              <li
-                key={`${scene.channel}-${line.cmd}-${line.detail}-${i}`}
-                className={`operate-crt-line status-${line.status}${i === visibleLines - 1 ? " is-latest" : ""}`}
-              >
-                <span className="operate-crt-cmd">{line.cmd}</span>
-                <span className="operate-crt-detail">{line.detail}</span>
-                <span className="operate-crt-status">
-                  {line.status === "ok"
-                    ? "OK"
-                    : line.status === "run"
-                      ? "RUN"
-                      : "…"}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {!compact ? (
-            <div className="operate-crt-footer">
-              <span>PETAI · DEVICE CTRL</span>
-              <span className="operate-crt-cursor" aria-hidden />
-            </div>
-          ) : null}
+      <div className="operate-crt-screen">
+        <div className="operate-crt-scanlines" aria-hidden />
+        <div className="operate-crt-roll" aria-hidden />
+        <div className="operate-crt-header">
+          <span>{scene.channel}</span>
+          <span className="operate-crt-signal">
+            <i />
+            LIVE
+          </span>
         </div>
+        <p className="operate-crt-title">{scene.title}</p>
+        <ul className="operate-crt-lines">
+          {lines.slice(0, visibleLines).map((line, i) => (
+            <li
+              key={`${scene.channel}-${line.cmd}-${line.detail}-${i}`}
+              className={`operate-crt-line status-${line.status}${i === visibleLines - 1 ? " is-latest" : ""}`}
+            >
+              <span className="operate-crt-cmd">{line.cmd}</span>
+              <span className="operate-crt-detail">{line.detail}</span>
+              <span className="operate-crt-status">
+                {line.status === "ok" ? "OK" : line.status === "run" ? "…" : "–"}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
+}
+
+function FaceOperate() {
+  return <OperateCrtScreen face />;
 }
 
 function FaceOrigin() {
@@ -413,14 +405,6 @@ function FaceOrigin() {
           </div>
         </div>
       </div>
-    </FaceShell>
-  );
-}
-
-function FaceOperate() {
-  return (
-    <FaceShell title="Device control" status="Executing">
-      <OperateCrtScreen />
     </FaceShell>
   );
 }
