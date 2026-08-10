@@ -5,13 +5,23 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly details?: unknown;
+  readonly feature?: string;
+  readonly requiredPlan?: string;
 
-  constructor(status: number, code: string, message: string, details?: unknown) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    details?: unknown,
+    extra?: { feature?: string; requiredPlan?: string },
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.details = details;
+    this.feature = extra?.feature;
+    this.requiredPlan = extra?.requiredPlan;
   }
 }
 
@@ -69,11 +79,21 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const body = data as ApiErrorBody | null;
+    const errObj = body?.error as
+      | (ApiErrorBody["error"] & {
+          feature?: string;
+          requiredPlan?: string;
+        })
+      | undefined;
     throw new ApiError(
       response.status,
-      body?.error?.code ?? "HTTP_ERROR",
+      errObj?.code ?? "HTTP_ERROR",
       messageFromBody(body, response.statusText || "Request failed"),
-      body?.error?.details,
+      errObj?.details,
+      {
+        feature: errObj?.feature,
+        requiredPlan: errObj?.requiredPlan,
+      },
     );
   }
 

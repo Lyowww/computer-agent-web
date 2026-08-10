@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Copy, Activity, Terminal } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -119,6 +120,14 @@ export default function SettingsPage() {
                 <div>
                   <dt className="text-[var(--muted)]">Email</dt>
                   <dd className="mt-0.5 break-all font-medium">{profile?.email}</dd>
+                </div>
+                <div>
+                  <Link
+                    href="/billing/"
+                    className="text-sm font-medium text-[var(--accent)] hover:underline"
+                  >
+                    Manage billing & plans →
+                  </Link>
                 </div>
               </dl>
             </div>

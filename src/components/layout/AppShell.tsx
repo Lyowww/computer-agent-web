@@ -12,19 +12,30 @@ import {
   AppWindow,
   Cpu,
   User,
+  CreditCard,
+  Gauge,
+  Users,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuthStore } from "@/stores/authStore";
 import { useChatStore } from "@/stores/chatStore";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Badge } from "@/components/ui/Badge";
+import { AccountBadge } from "@/components/billing/AccountBadge";
+import { useAccount } from "@/hooks/useAccount";
 
-const nav = [
+const primaryNav = [
   { href: "/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
   { href: "/devices", label: "Devices", short: "Devices", icon: MonitorSmartphone },
-  { href: "/chat", label: "AI Control", short: "Chat", icon: MessageSquareCode },
-  { href: "/apps", label: "App Center", short: "Apps", icon: AppWindow },
+  { href: "/chat", label: "Chat", short: "Chat", icon: MessageSquareCode },
+  { href: "/apps", label: "Apps", short: "Apps", icon: AppWindow },
   { href: "/processes", label: "Processes", short: "Procs", icon: Cpu },
+];
+
+const secondaryNav = [
+  { href: "/usage", label: "Usage", short: "Usage", icon: Gauge },
+  { href: "/billing", label: "Billing", short: "Bill", icon: CreditCard },
   { href: "/settings", label: "Settings", short: "More", icon: Settings },
 ];
 
@@ -41,7 +52,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const clearSession = useAuthStore((s) => s.clearSession);
   const wsConnected = useChatStore((s) => s.wsConnected);
+  const account = useAccount();
   const isChat = pathname.startsWith("/chat");
+  const isBusiness = account.data?.accountType === "BUSINESS";
+  const showTeam = isBusiness && account.data?.entitlements.teamManagement;
+  const showAudit = isBusiness && account.data?.entitlements.auditLogs;
+
+  const businessNav = [
+    ...(showTeam
+      ? [{ href: "/team", label: "Team", short: "Team", icon: Users }]
+      : []),
+    ...(showAudit
+      ? [{ href: "/audit", label: "Audit Logs", short: "Audit", icon: ScrollText }]
+      : []),
+  ];
+
+  const desktopNav = [...primaryNav, ...businessNav, ...secondaryNav];
+  const mobileNav = [...primaryNav, secondaryNav[1]!, secondaryNav[2]!];
 
   function logout() {
     clearSession();
@@ -72,9 +99,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 PETAI
               </p>
               <p className="mt-1 text-sm text-[var(--muted)]">Computer Agent</p>
+              <div className="mt-4">
+                <AccountBadge account={account.data} />
+              </div>
             </div>
-            <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="App">
-              {nav.map((item) => {
+            <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="App">
+              {desktopNav.map((item) => {
                 const Icon = item.icon;
                 const active = pathname.startsWith(item.href);
                 return (
@@ -145,6 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   >
                     {wsConnected ? "Connected" : "Offline"}
                   </Badge>
+                  <AccountBadge account={account.data} compact />
                 </div>
               </div>
               <button
@@ -176,7 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           aria-label="Mobile"
         >
           <div className="grid w-full grid-cols-6 gap-0 px-1 pt-1.5">
-            {nav.map((item) => {
+            {mobileNav.map((item) => {
               const Icon = item.icon;
               const active = pathname.startsWith(item.href);
               return (

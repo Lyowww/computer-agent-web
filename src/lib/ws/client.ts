@@ -4,6 +4,7 @@ import type {
   AiResponsePayload,
   AppActionResultPayload,
   AppsResultPayload,
+  DeviceInfoUpdatedPayload,
   DeviceStatusPayload,
   ErrorPayload,
   LockResultPayload,
@@ -19,6 +20,7 @@ export type WsHandlers = {
   onConnect?: () => void;
   onDisconnect?: (reason: string) => void;
   onDeviceStatus?: (payload: DeviceStatusPayload) => void;
+  onDeviceInfoUpdated?: (payload: DeviceInfoUpdatedPayload) => void;
   onScreenResult?: (payload: ScreenResultPayload) => void;
   onCameraResult?: (payload: ScreenResultPayload) => void;
   onTaskStart?: (payload: TaskStartPayload) => void;
@@ -116,6 +118,9 @@ export class AgentSocket {
         case "DEVICE_STATUS":
           handlers.onDeviceStatus?.(payload as DeviceStatusPayload);
           break;
+        case "DEVICE_INFO_UPDATED":
+          handlers.onDeviceInfoUpdated?.(payload as DeviceInfoUpdatedPayload);
+          break;
         case "SCREEN_RESULT":
           handlers.onScreenResult?.(payload as ScreenResultPayload);
           break;
@@ -165,6 +170,7 @@ export class AgentSocket {
 
     const named = [
       "DEVICE_STATUS",
+      "DEVICE_INFO_UPDATED",
       "SCREEN_RESULT",
       "CAMERA_RESULT",
       "TASK_START",

@@ -10,13 +10,16 @@ import { Input } from "@/components/ui/Input";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
+import { ApiError } from "@/lib/api/client";
 
 export function CreateDeviceModal({
   open,
   onClose,
+  onCreated,
 }: {
   open: boolean;
   onClose: () => void;
+  onCreated?: () => void;
 }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -31,8 +34,15 @@ export function CreateDeviceModal({
       setTokenOnce(data.deviceToken);
       toast("Device created", "success");
       void queryClient.invalidateQueries({ queryKey: ["devices"] });
+      onCreated?.();
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.code === "DEVICE_LIMIT_REACHED") {
+        setError(err.message);
+        return;
+      }
+      setError(err.message);
+    },
   });
 
   function submit(e: React.FormEvent) {

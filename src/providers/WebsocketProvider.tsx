@@ -24,6 +24,14 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       onDeviceStatus: () => {
         void queryClient.invalidateQueries({ queryKey: ["devices"] });
       },
+      onDeviceInfoUpdated: (payload) => {
+        void queryClient.invalidateQueries({ queryKey: ["devices"] });
+        if (payload?.deviceId) {
+          void queryClient.invalidateQueries({
+            queryKey: ["devices", payload.deviceId],
+          });
+        }
+      },
       onTaskStart: (payload) => {
         const s = useChatStore.getState();
         s.setActiveTask(payload.taskId, "RUNNING");

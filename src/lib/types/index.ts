@@ -1,6 +1,6 @@
 export type DeviceOs = "darwin" | "win32" | "linux";
 
-export type ConnectionStatus = "ONLINE" | "OFFLINE" | "REVOKED";
+export type ConnectionStatus = "REGISTERED" | "ONLINE" | "OFFLINE" | "REVOKED";
 
 export type TaskStatus =
   | "CREATED"
@@ -39,6 +39,7 @@ export interface AuthResponse {
 
 export interface Device {
   id: string;
+  accountId?: string;
   userId: string;
   name: string;
   os: DeviceOs;
@@ -50,6 +51,98 @@ export interface Device {
   /** Always available for the device owner once stored / backfilled */
   deviceToken?: string | null;
   activeTask?: TaskSummary | null;
+}
+
+export interface DeviceStorageVolume {
+  name?: string;
+  totalBytes?: number;
+  availableBytes?: number;
+}
+
+export interface DeviceDisplayInfo {
+  width?: number;
+  height?: number;
+  scaleFactor?: number;
+  primary?: boolean;
+}
+
+export interface DeviceSystemInfo {
+  hostname: string | null;
+  username: string | null;
+  platform: string | null;
+  platformVersion: string | null;
+  architecture: string | null;
+  agentVersion: string | null;
+  cpu: {
+    model: string | null;
+    cores: number | null;
+  };
+  memory: {
+    totalBytes: number | null;
+    availableBytes: number | null;
+  };
+  storage: DeviceStorageVolume[] | null;
+  gpu: {
+    name?: string;
+    vendor?: string;
+    vramBytes?: number;
+  } | null;
+  displays: DeviceDisplayInfo[] | null;
+  uptimeSeconds: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface DeviceNetworkInfo {
+  publicIp: string | null;
+  localIp: string | null;
+  ipv6: string | null;
+  interfaceName: string | null;
+  connectionType: string | null;
+  latencyMs: number | null;
+  connectionQuality: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface DeviceLocationInfo {
+  available: boolean;
+  approximate: boolean;
+  label: string;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isp: string | null;
+  asn: string | null;
+  timezone: string | null;
+  sourceIp: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface DeviceConnectionInfo {
+  connectedSince: string;
+  sessionIp: string | null;
+  userAgent: string | null;
+  socketActive: boolean;
+}
+
+export interface DeviceDetail extends Device {
+  firstConnectedAt?: string;
+  system: DeviceSystemInfo | null;
+  network: DeviceNetworkInfo | null;
+  location: DeviceLocationInfo | null;
+  connection: DeviceConnectionInfo | null;
+}
+
+export interface DeviceInfoUpdatedPayload {
+  deviceId: string;
+  system?: DeviceSystemInfo | null;
+  network?: DeviceNetworkInfo | null;
+  location?: DeviceLocationInfo | null;
+  connection?: DeviceConnectionInfo | null;
 }
 
 export interface CreateDeviceResponse {
@@ -133,6 +226,7 @@ export interface TaskProgressStep {
 
 export type WsEventName =
   | "DEVICE_STATUS"
+  | "DEVICE_INFO_UPDATED"
   | "SCREEN_RESULT"
   | "TASK_START"
   | "TASK_UPDATE"

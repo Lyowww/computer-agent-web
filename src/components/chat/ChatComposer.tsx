@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorder";
 import { cn } from "@/lib/utils/cn";
+import { useEntitlement } from "@/hooks/useAccount";
+import Link from "next/link";
 
 export function ChatComposer({
   disabled,
@@ -49,6 +51,7 @@ export function ChatComposer({
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const voiceAllowed = useEntitlement("voiceControl");
 
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
@@ -152,10 +155,23 @@ export function ChatComposer({
             />
             AI
           </label>
-          <VoiceRecorderButton
-            disabled={disabled || sending}
-            onTranscript={(text) => setValue((prev) => (prev ? `${prev} ${text}` : text))}
-          />
+          {voiceAllowed ? (
+            <VoiceRecorderButton
+              disabled={disabled || sending}
+              onTranscript={(text) =>
+                setValue((prev) => (prev ? `${prev} ${text}` : text))
+              }
+            />
+          ) : (
+            <Link
+              href="/billing/"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-2.5 py-1.5 text-[11px] text-[var(--muted)] hover:text-[var(--fg)]"
+              title="Voice requires Personal Pro"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              Voice
+            </Link>
+          )}
 
           {/* Desktop / tablet: inline tools */}
           <div className="hidden items-center gap-1.5 sm:flex">

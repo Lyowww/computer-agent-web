@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { DeviceCard } from "@/components/devices/DeviceCard";
@@ -15,13 +16,19 @@ import { listTasks } from "@/lib/api/tasks";
 import { formatTimestamp } from "@/lib/utils/format";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
+import { useAccount, useInvalidateAccount } from "@/hooks/useAccount";
+import { UpgradeDialog } from "@/components/billing/UpgradeDialog";
+import { ACCOUNT_TYPE_LABELS, PLAN_LABELS } from "@/lib/types/billing";
 
 export default function DevicesPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const account = useAccount();
+  const invalidateAccount = useInvalidateAccount();
   const [open, setOpen] = useState(false);
   const [revokeId, setRevokeId] = useState<string | null>(null);
   const [regenId, setRegenId] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const devicesQuery = useQuery({ queryKey: ["devices"], queryFn: listDevices });
   const tasksQuery = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
@@ -32,6 +39,7 @@ export default function DevicesPage() {
       setRevokeId(null);
       toast("Device revoked", "success");
       void queryClient.invalidateQueries({ queryKey: ["devices"] });
+      invalidateAccount();
     },
   });
 
@@ -54,6 +62,24 @@ export default function DevicesPage() {
       ) ?? null,
   }));
 
+  const maxDevices = account.data?.entitlements.maxDevices ?? 2;
+  const used = account.data?.usage.devices ?? devices.length;
+  const atLimit = used >= maxDevices;
+  const planName = account.data
+    ? PLAN_LABELS[account.data.subscription.plan]
+    : "Free";
+  const accountTypeLabel = account.data
+    ? ACCOUNT_TYPE_LABELS[account.data.accountType]
+    : "Personal";
+
+  function onAddDevice() {
+    if (atLimit) {
+      setUpgradeOpen(true);
+      return;
+    }
+    setOpen(true);
+  }
+
   return (
     <AppShell>
       <div className="space-y-6">
@@ -66,12 +92,33 @@ export default function DevicesPage() {
               Manage desktop agents. Agent keys stay tucked behind setup when you
               need them.
             </p>
+            <p className="mt-2 font-mono-ui text-sm text-[var(--fg)]">
+              {used} / {maxDevices} devices
+            </p>
           </div>
-          <Button onClick={() => setOpen(true)} className="w-full sm:w-auto">
+          <Button onClick={onAddDevice} className="w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add device
           </Button>
         </header>
+
+        {atLimit ? (
+          <Card className="border-[color-mix(in_srgb,var(--warning)_40%,transparent)] bg-[var(--warning-soft)]/40" padding="lg">
+            <p className="font-display text-xl tracking-tight">
+              Device limit reached
+            </p>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Your {accountTypeLabel} plan allows up to {maxDevices} connected
+              devices.
+            </p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Upgrade your plan to connect more devices.
+            </p>
+            <Link href="/billing/" className="mt-4 inline-flex">
+              <Button size="sm">Upgrade</Button>
+            </Link>
+          </Card>
+        ) : null}
 
         {devicesQuery.isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -117,7 +164,7 @@ export default function DevicesPage() {
                 <p className="mt-2 text-sm text-[var(--muted)]">
                   Install the PetAI desktop agent to connect your first computer.
                 </p>
-                <Button className="mt-4" onClick={() => setOpen(true)}>
+                <Button className="mt-4" onClick={onAddDevice}>
                   <Plus className="h-4 w-4" />
                   Connect Device
                 </Button>
@@ -127,7 +174,17 @@ export default function DevicesPage() {
         )}
       </div>
 
-      <CreateDeviceModal open={open} onClose={() => setOpen(false)} />
+      <CreateDeviceModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onCreated={() => invalidateAccount()}
+      />
+      <UpgradeDialog
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        deviceLimit={{ max: maxDevices, planName }}
+        message={`Your ${accountTypeLabel} plan allows up to ${maxDevices} connected devices. Upgrade to continue adding devices.`}
+      />
       <ConfirmDialog
         open={!!revokeId}
         title="Revoke device?"
