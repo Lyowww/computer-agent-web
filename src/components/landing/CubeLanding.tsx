@@ -157,6 +157,7 @@ function TextCard({
   body,
   stats,
   actions,
+  extra,
   titleAs = "h2",
 }: {
   align?: "left" | "right" | "center";
@@ -165,6 +166,7 @@ function TextCard({
   body: string;
   stats?: { num: string; label: string }[];
   actions?: ReactNode;
+  extra?: ReactNode;
   titleAs?: "h1" | "h2";
 }) {
   const TitleTag = titleAs;
@@ -191,6 +193,11 @@ function TextCard({
         <p className="body-text cube-reveal" data-reveal>
           {body}
         </p>
+        {extra ? (
+          <div className="text-card-extra cube-reveal" data-reveal>
+            {extra}
+          </div>
+        ) : null}
         {stats ? (
           <div className="stat-row cube-reveal" data-reveal>
             {stats.map((s, i) => (
@@ -208,6 +215,138 @@ function TextCard({
         ) : null}
       </div>
     </article>
+  );
+}
+
+const OPERATE_SCENES = [
+  {
+    channel: "CH-07 · LIVE",
+    title: "Open YouTube in Chrome",
+    lines: [
+      { text: "OPEN_APP  chrome", status: "ok" as const },
+      { text: "CLICK     {x:412, y:88}", status: "ok" as const },
+      { text: "TYPE_TEXT youtube.com", status: "run" as const },
+      { text: "HOTKEY    enter", status: "wait" as const },
+      { text: "VERIFY    screenshot", status: "wait" as const },
+    ],
+  },
+  {
+    channel: "CH-12 · LIVE",
+    title: "Prep meeting workspace",
+    lines: [
+      { text: "OPEN_APP  notion", status: "ok" as const },
+      { text: "OPEN_APP  chrome", status: "ok" as const },
+      { text: "OPEN_APP  slack", status: "run" as const },
+      { text: "ARRANGE   windows", status: "wait" as const },
+      { text: "VERIFY    layout", status: "wait" as const },
+    ],
+  },
+  {
+    channel: "CH-03 · LIVE",
+    title: "Download invoice to Desktop",
+    lines: [
+      { text: "OPEN_APP  mail", status: "ok" as const },
+      { text: "CLICK     attachment", status: "ok" as const },
+      { text: "SAVE_AS   ~/Desktop", status: "run" as const },
+      { text: "WAIT      900ms", status: "wait" as const },
+      { text: "VERIFY    file exists", status: "wait" as const },
+    ],
+  },
+  {
+    channel: "CH-21 · LIVE",
+    title: "Lock workstation",
+    lines: [
+      { text: "DETECT    idle session", status: "ok" as const },
+      { text: "HOTKEY    lock screen", status: "run" as const },
+      { text: "CONFIRM   locked", status: "wait" as const },
+      { text: "NOTIFY    phone", status: "wait" as const },
+    ],
+  },
+] as const;
+
+function OperateCrtScreen({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
+  const reduced = usePrefersReducedMotion();
+  const [sceneIndex, setSceneIndex] = useState(0);
+  const [visibleLines, setVisibleLines] = useState(1);
+  const [flicker, setFlicker] = useState(false);
+  const scene = OPERATE_SCENES[sceneIndex] ?? OPERATE_SCENES[0];
+
+  useEffect(() => {
+    if (reduced) {
+      setVisibleLines(scene.lines.length);
+      return;
+    }
+
+    setVisibleLines(1);
+    setFlicker(true);
+    const flickerOff = window.setTimeout(() => setFlicker(false), 180);
+
+    const lineTimers: number[] = [];
+    scene.lines.forEach((_, i) => {
+      if (i === 0) return;
+      lineTimers.push(
+        window.setTimeout(() => setVisibleLines(i + 1), i * 700),
+      );
+    });
+
+    const sceneTimer = window.setTimeout(() => {
+      setSceneIndex((i) => (i + 1) % OPERATE_SCENES.length);
+    }, Math.max(4200, scene.lines.length * 700 + 1600));
+
+    return () => {
+      window.clearTimeout(flickerOff);
+      window.clearTimeout(sceneTimer);
+      lineTimers.forEach((id) => window.clearTimeout(id));
+    };
+  }, [sceneIndex, scene.lines, reduced]);
+
+  return (
+    <div
+      className={`operate-crt${compact ? " operate-crt--compact" : ""}${flicker ? " is-flicker" : ""}`}
+      aria-live="polite"
+    >
+      <div className="operate-crt-bezel">
+        <div className="operate-crt-screen">
+          <div className="operate-crt-scanlines" aria-hidden />
+          <div className="operate-crt-roll" aria-hidden />
+          <div className="operate-crt-vignette" aria-hidden />
+          <div className="operate-crt-header">
+            <span className="operate-crt-channel">{scene.channel}</span>
+            <span className="operate-crt-signal">
+              <i />
+              SIGNAL
+            </span>
+          </div>
+          <p className="operate-crt-title">{scene.title}</p>
+          <ul className="operate-crt-lines">
+            {scene.lines.slice(0, visibleLines).map((line, i) => (
+              <li
+                key={`${scene.channel}-${line.text}-${i}`}
+                className={`operate-crt-line status-${line.status}${i === visibleLines - 1 ? " is-latest" : ""}`}
+              >
+                <span className="operate-crt-prompt">&gt;</span>
+                <code>{line.text}</code>
+                <em>
+                  {line.status === "ok"
+                    ? "OK"
+                    : line.status === "run"
+                      ? "…"
+                      : "WAIT"}
+                </em>
+              </li>
+            ))}
+          </ul>
+          <div className="operate-crt-footer">
+            <span>PETAI · DEVICE CTRL</span>
+            <span className="operate-crt-cursor" aria-hidden />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -278,51 +417,7 @@ function FaceOrigin() {
 function FaceOperate() {
   return (
     <FaceShell title="Device control" status="Executing">
-      <div className="face-panel face-panel--operate">
-        <div className="face-hero-line">
-          <span className="face-kicker">Live task</span>
-          <strong>Open YouTube in Chrome</strong>
-        </div>
-        <ol className="face-steps">
-          <li className="done">
-            <span>01</span>
-            <div>
-              <strong>Open Chrome</strong>
-              <em>App launched</em>
-            </div>
-          </li>
-          <li className="done">
-            <span>02</span>
-            <div>
-              <strong>Focus address bar</strong>
-              <em>Click · x412 y88</em>
-            </div>
-          </li>
-          <li className="active">
-            <span>03</span>
-            <div>
-              <strong>
-                Type <span className="ok">youtube.com</span>
-              </strong>
-              <em>Typing…</em>
-            </div>
-          </li>
-          <li>
-            <span>04</span>
-            <div>
-              <strong>Press Enter</strong>
-              <em>Pending</em>
-            </div>
-          </li>
-          <li>
-            <span>05</span>
-            <div>
-              <strong>Verify result</strong>
-              <em>Screenshot check</em>
-            </div>
-          </li>
-        </ol>
-      </div>
+      <OperateCrtScreen />
     </FaceShell>
   );
 }
@@ -985,6 +1080,7 @@ export function CubeLanding({
               </>
             }
             body="Not just answers — structured mouse, keyboard, and app actions on the real desktop. Watch it open Chrome, type a URL, and verify the result."
+            extra={<OperateCrtScreen compact />}
             stats={[
               { num: "CLICK", label: "Pointer" },
               { num: "TYPE", label: "Keyboard" },
