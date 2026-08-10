@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, ShieldAlert } from "lucide-react";
-import { login, register } from "@/lib/api/auth";
-import { loginSchema, registerSchema } from "@/lib/validators/schemas";
+import { login } from "@/lib/api/auth";
+import { loginSchema } from "@/lib/validators/schemas";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,11 +16,8 @@ export default function LoginPage() {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
   const setSession = useAuthStore((s) => s.setSession);
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [devBypass, setDevBypass] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,33 +30,13 @@ export default function LoginPage() {
     setError(null);
     setBusy(true);
     try {
-      if (mode === "login") {
-        const parsed = loginSchema.safeParse({ email, password });
-        if (!parsed.success) {
-          setError(parsed.error.issues[0]?.message || "Invalid credentials");
-          return;
-        }
-        const result = await login(parsed.data);
-        setSession(result.user, result.accessToken);
-      } else {
-        if (!devBypass) {
-          setError(
-            "Public registration is disabled. Join the waitlist from the landing page.",
-          );
-          return;
-        }
-        const parsed = registerSchema.safeParse({
-          email,
-          password,
-          name: name || undefined,
-        });
-        if (!parsed.success) {
-          setError(parsed.error.issues[0]?.message || "Invalid registration");
-          return;
-        }
-        const result = await register(parsed.data);
-        setSession(result.user, result.accessToken);
+      const parsed = loginSchema.safeParse({ email, password });
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message || "Invalid credentials");
+        return;
       }
+      const result = await login(parsed.data);
+      setSession(result.user, result.accessToken);
       router.replace("/dashboard/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -100,68 +77,22 @@ export default function LoginPage() {
           onSubmit={(e) => void onSubmit(e)}
           className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[color-mix(in_srgb,var(--panel-elevated)_92%,transparent)] p-5 shadow-[0_24px_64px_-28px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:rounded-3xl sm:p-7"
         >
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] p-3">
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] p-3">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning)]" />
             <div className="min-w-0">
               <Badge tone="warning" className="mb-1.5">
-                Coming Soon Mode Active
+                Signup closed
               </Badge>
               <p className="text-xs leading-relaxed text-[var(--muted)]">
-                Public registration is closed. Sign in if you already have an
-                account, or enable developer bypass to create one.
+                Public registration is closed. Sign in with an existing account,
+                or join the waitlist from the landing page for early access.
               </p>
             </div>
-          </div>
-
-          <div className="mb-5 flex rounded-xl border border-[var(--border)] bg-[var(--bg)] p-1">
-            <button
-              type="button"
-              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                mode === "login"
-                  ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                  : "text-[var(--muted)] hover:text-[var(--fg)]"
-              }`}
-              onClick={() => setMode("login")}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                mode === "register"
-                  ? "bg-[var(--accent-soft)] text-[var(--accent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                  : "text-[var(--muted)] hover:text-[var(--fg)]"
-              }`}
-              onClick={() => setMode("register")}
-            >
-              Create account
-            </button>
           </div>
 
           {error ? (
             <div className="mb-4">
               <ErrorBanner message={error} onDismiss={() => setError(null)} />
-            </div>
-          ) : null}
-
-          {mode === "register" ? (
-            <div className="mb-3 space-y-3">
-              <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--panel-elevated)] px-3 py-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={devBypass}
-                  onChange={(e) => setDevBypass(e.target.checked)}
-                  className="accent-[var(--accent)]"
-                />
-                Developer bypass (internal / test)
-              </label>
-              <Input
-                label="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Optional"
-                disabled={!devBypass}
-              />
             </div>
           ) : null}
 
@@ -177,7 +108,7 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -185,17 +116,8 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="mt-5 w-full"
-            loading={busy}
-            disabled={mode === "register" && !devBypass}
-          >
-            {busy
-              ? "Please wait…"
-              : mode === "login"
-                ? "Sign in"
-                : "Create account"}
+          <Button type="submit" className="mt-5 w-full" loading={busy}>
+            {busy ? "Please wait…" : "Sign in"}
           </Button>
 
           <p className="mt-4 text-center text-xs text-[var(--muted)]">
