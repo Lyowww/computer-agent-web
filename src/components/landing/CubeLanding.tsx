@@ -220,46 +220,46 @@ function TextCard({
 
 const OPERATE_SCENES = [
   {
-    channel: "CH-07 · LIVE",
+    channel: "CH-07",
     title: "Open YouTube in Chrome",
     lines: [
-      { text: "OPEN_APP  chrome", status: "ok" as const },
-      { text: "CLICK     {x:412, y:88}", status: "ok" as const },
-      { text: "TYPE_TEXT youtube.com", status: "run" as const },
-      { text: "HOTKEY    enter", status: "wait" as const },
-      { text: "VERIFY    screenshot", status: "wait" as const },
+      { cmd: "OPEN_APP", detail: "chrome", status: "ok" as const },
+      { cmd: "CLICK", detail: "address bar", status: "ok" as const },
+      { cmd: "TYPE", detail: "youtube.com", status: "run" as const },
+      { cmd: "HOTKEY", detail: "enter", status: "wait" as const },
+      { cmd: "VERIFY", detail: "screenshot", status: "wait" as const },
     ],
   },
   {
-    channel: "CH-12 · LIVE",
+    channel: "CH-12",
     title: "Prep meeting workspace",
     lines: [
-      { text: "OPEN_APP  notion", status: "ok" as const },
-      { text: "OPEN_APP  chrome", status: "ok" as const },
-      { text: "OPEN_APP  slack", status: "run" as const },
-      { text: "ARRANGE   windows", status: "wait" as const },
-      { text: "VERIFY    layout", status: "wait" as const },
+      { cmd: "OPEN_APP", detail: "notion", status: "ok" as const },
+      { cmd: "OPEN_APP", detail: "chrome", status: "ok" as const },
+      { cmd: "OPEN_APP", detail: "slack", status: "run" as const },
+      { cmd: "ARRANGE", detail: "windows", status: "wait" as const },
+      { cmd: "VERIFY", detail: "layout", status: "wait" as const },
     ],
   },
   {
-    channel: "CH-03 · LIVE",
-    title: "Download invoice to Desktop",
+    channel: "CH-03",
+    title: "Save invoice to Desktop",
     lines: [
-      { text: "OPEN_APP  mail", status: "ok" as const },
-      { text: "CLICK     attachment", status: "ok" as const },
-      { text: "SAVE_AS   ~/Desktop", status: "run" as const },
-      { text: "WAIT      900ms", status: "wait" as const },
-      { text: "VERIFY    file exists", status: "wait" as const },
+      { cmd: "OPEN_APP", detail: "mail", status: "ok" as const },
+      { cmd: "CLICK", detail: "attachment", status: "ok" as const },
+      { cmd: "SAVE", detail: "~/Desktop", status: "run" as const },
+      { cmd: "WAIT", detail: "900ms", status: "wait" as const },
+      { cmd: "VERIFY", detail: "file exists", status: "wait" as const },
     ],
   },
   {
-    channel: "CH-21 · LIVE",
+    channel: "CH-21",
     title: "Lock workstation",
     lines: [
-      { text: "DETECT    idle session", status: "ok" as const },
-      { text: "HOTKEY    lock screen", status: "run" as const },
-      { text: "CONFIRM   locked", status: "wait" as const },
-      { text: "NOTIFY    phone", status: "wait" as const },
+      { cmd: "DETECT", detail: "idle session", status: "ok" as const },
+      { cmd: "HOTKEY", detail: "lock screen", status: "run" as const },
+      { cmd: "CONFIRM", detail: "locked", status: "wait" as const },
+      { cmd: "NOTIFY", detail: "phone", status: "wait" as const },
     ],
   },
 ] as const;
@@ -274,35 +274,36 @@ function OperateCrtScreen({
   const [visibleLines, setVisibleLines] = useState(1);
   const [flicker, setFlicker] = useState(false);
   const scene = OPERATE_SCENES[sceneIndex] ?? OPERATE_SCENES[0];
+  const maxLines = compact ? Math.min(3, scene.lines.length) : scene.lines.length;
+  const lines = scene.lines.slice(0, maxLines);
 
   useEffect(() => {
     if (reduced) {
-      setVisibleLines(scene.lines.length);
+      setVisibleLines(maxLines);
       return;
     }
 
     setVisibleLines(1);
     setFlicker(true);
-    const flickerOff = window.setTimeout(() => setFlicker(false), 180);
+    const flickerOff = window.setTimeout(() => setFlicker(false), 160);
 
     const lineTimers: number[] = [];
-    scene.lines.forEach((_, i) => {
-      if (i === 0) return;
+    for (let i = 1; i < maxLines; i += 1) {
       lineTimers.push(
-        window.setTimeout(() => setVisibleLines(i + 1), i * 700),
+        window.setTimeout(() => setVisibleLines(i + 1), i * 850),
       );
-    });
+    }
 
     const sceneTimer = window.setTimeout(() => {
       setSceneIndex((i) => (i + 1) % OPERATE_SCENES.length);
-    }, Math.max(4200, scene.lines.length * 700 + 1600));
+    }, Math.max(3800, maxLines * 850 + 1400));
 
     return () => {
       window.clearTimeout(flickerOff);
       window.clearTimeout(sceneTimer);
       lineTimers.forEach((id) => window.clearTimeout(id));
     };
-  }, [sceneIndex, scene.lines, reduced]);
+  }, [sceneIndex, maxLines, reduced]);
 
   return (
     <div
@@ -315,35 +316,37 @@ function OperateCrtScreen({
           <div className="operate-crt-roll" aria-hidden />
           <div className="operate-crt-vignette" aria-hidden />
           <div className="operate-crt-header">
-            <span className="operate-crt-channel">{scene.channel}</span>
+            <span className="operate-crt-channel">{scene.channel} · LIVE</span>
             <span className="operate-crt-signal">
               <i />
-              SIGNAL
+              ON
             </span>
           </div>
           <p className="operate-crt-title">{scene.title}</p>
           <ul className="operate-crt-lines">
-            {scene.lines.slice(0, visibleLines).map((line, i) => (
+            {lines.slice(0, visibleLines).map((line, i) => (
               <li
-                key={`${scene.channel}-${line.text}-${i}`}
+                key={`${scene.channel}-${line.cmd}-${line.detail}-${i}`}
                 className={`operate-crt-line status-${line.status}${i === visibleLines - 1 ? " is-latest" : ""}`}
               >
-                <span className="operate-crt-prompt">&gt;</span>
-                <code>{line.text}</code>
-                <em>
+                <span className="operate-crt-cmd">{line.cmd}</span>
+                <span className="operate-crt-detail">{line.detail}</span>
+                <span className="operate-crt-status">
                   {line.status === "ok"
                     ? "OK"
                     : line.status === "run"
-                      ? "…"
-                      : "WAIT"}
-                </em>
+                      ? "RUN"
+                      : "…"}
+                </span>
               </li>
             ))}
           </ul>
-          <div className="operate-crt-footer">
-            <span>PETAI · DEVICE CTRL</span>
-            <span className="operate-crt-cursor" aria-hidden />
-          </div>
+          {!compact ? (
+            <div className="operate-crt-footer">
+              <span>PETAI · DEVICE CTRL</span>
+              <span className="operate-crt-cursor" aria-hidden />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
