@@ -413,6 +413,90 @@ const FACE_VIEWS = [
   FaceConnect,
 ] as const;
 
+const FEATURES = [
+  {
+    icon: "01",
+    title: "Remote desktop control",
+    body: "Drive mouse, keyboard, and apps on your real computer from your phone — not a sandbox.",
+    chips: ["Mouse", "Keyboard", "Apps"],
+  },
+  {
+    icon: "02",
+    title: "On-demand vision",
+    body: "Screenshots only when needed. The planner finds UI targets before every action.",
+    chips: ["REQ capture", "CV", "Locate"],
+  },
+  {
+    icon: "03",
+    title: "Whitelisted actions",
+    body: "Zod-validated desktop primitives only. No shell, no eval, no arbitrary code paths.",
+    chips: ["OPEN_APP", "CLICK", "TYPE"],
+  },
+  {
+    icon: "04",
+    title: "Human-in-the-loop",
+    body: "Purchases, deletes, and credential changes pause until you approve on your phone.",
+    chips: ["HITL", "Pause", "You decide"],
+  },
+  {
+    icon: "05",
+    title: "Cross-platform agent",
+    body: "One lightweight runtime for macOS, Windows, and Linux with native permissions.",
+    chips: ["macOS", "Windows", "Linux"],
+  },
+  {
+    icon: "06",
+    title: "Secure device link",
+    body: "One-time tokens, encrypted transport, and session health you can see live.",
+    chips: ["Token", "WebSocket", "Keychain"],
+  },
+] as const;
+
+const USE_CASES = [
+  {
+    label: "Away from desk",
+    title: "Finish work remotely",
+    prompt: "Download the invoice from my email and save it to Desktop.",
+    result: "Mail → PDF → Desktop",
+  },
+  {
+    label: "Before a meeting",
+    title: "Prep in one prompt",
+    prompt: "Open Notion, Chrome with the deck, and Slack.",
+    result: "Notion · Chrome · Slack",
+  },
+  {
+    label: "Quick lock",
+    title: "Secure the machine",
+    prompt: "Lock my computer.",
+    result: "Screen locked",
+  },
+  {
+    label: "Remote status",
+    title: "See what's open",
+    prompt: "Show me what's currently on my computer.",
+    result: "Requested screenshot",
+  },
+] as const;
+
+const FLOW = [
+  {
+    n: "01",
+    title: "Install the agent",
+    body: "Lightweight native runtime with OS permission prompts — tray-ready in minutes.",
+  },
+  {
+    n: "02",
+    title: "Link your device",
+    body: "Create a device, paste the one-time token, and store credentials in the OS keychain.",
+  },
+  {
+    n: "03",
+    title: "Prompt from anywhere",
+    body: "Chat from your phone. PetAI sees, plans, acts, verifies — and asks when it matters.",
+  },
+] as const;
+
 export function CubeLanding({
   onWaitlist,
 }: {
@@ -420,6 +504,7 @@ export function CubeLanding({
 }) {
   const reduced = usePrefersReducedMotion();
   const cubeRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const fillRef = useRef<HTMLDivElement>(null);
   const pctRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
@@ -431,11 +516,11 @@ export function CubeLanding({
   const lastFaceRef = useRef(-1);
 
   const applyScroll = useCallback(() => {
-    const maxScroll = Math.max(
-      1,
-      document.documentElement.scrollHeight - window.innerHeight,
-    );
-    const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+    const scrollEl = scrollRef.current;
+    const cubeTravel = scrollEl
+      ? Math.max(1, scrollEl.offsetHeight - window.innerHeight)
+      : Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.min(1, Math.max(0, window.scrollY / cubeTravel));
     const faceProgress = progress * (FACE_NAMES.length - 1);
     const i0 = Math.min(
       FACE_NAMES.length - 2,
@@ -451,6 +536,19 @@ export function CubeLanding({
     if (!reduced && cubeRef.current) {
       cubeRef.current.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
     }
+
+    const pastCube = window.scrollY > cubeTravel + window.innerHeight * 0.15;
+    const scene = cubeRef.current?.parentElement;
+    if (scene) {
+      scene.style.opacity = pastCube ? "0" : "1";
+      scene.style.visibility = pastCube ? "hidden" : "visible";
+    }
+    document.querySelectorAll<HTMLElement>(
+      ".cube-hud, .cube-caption, .cube-strip",
+    ).forEach((el) => {
+      el.style.opacity = pastCube ? "0" : "1";
+      el.style.pointerEvents = pastCube ? "none" : "";
+    });
 
     const pct = Math.round(progress * 100);
     if (fillRef.current) fillRef.current.style.width = `${pct}%`;
@@ -546,6 +644,9 @@ export function CubeLanding({
         <a className="cube-nav-link" href="#s4">
           Safety
         </a>
+        <a className="cube-nav-link" href="#features">
+          Features
+        </a>
         <a className="cube-nav-link" href="#s5">
           Access
         </a>
@@ -626,7 +727,7 @@ export function CubeLanding({
         </div>
       </div>
 
-      <div className="cube-scroll">
+      <div className="cube-scroll" ref={scrollRef}>
         <section
           id="s0"
           className="cube-section"
@@ -801,6 +902,119 @@ export function CubeLanding({
             }
           />
         </section>
+      </div>
+
+      <div className="cube-beyond" id="features">
+        <div className="cube-beyond-inner">
+          <header className="cube-beyond-head">
+            <p className="cube-beyond-kicker">
+              <span className="cube-tag-dot" aria-hidden />
+              New capabilities
+            </p>
+            <h2>
+              Built for real desktops.
+              <br />
+              <span className="title-accent">Not demos.</span>
+            </h2>
+            <p>
+              Every feature is designed around seeing the UI, acting with
+              structure, and pausing when consequences matter.
+            </p>
+          </header>
+
+          <div className="feature-grid">
+            {FEATURES.map((f) => (
+              <article key={f.title} className="feature-card">
+                <div className="feature-icon" aria-hidden>
+                  {f.icon}
+                </div>
+                <h3>{f.title}</h3>
+                <p>{f.body}</p>
+                <div className="feature-chip-row">
+                  {f.chips.map((c) => (
+                    <span key={c}>{c}</span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <section className="usecase-band" aria-labelledby="usecases-title">
+            <header className="cube-beyond-head">
+              <p className="cube-beyond-kicker">
+                <span className="cube-tag-dot" aria-hidden />
+                Use cases
+              </p>
+              <h2 id="usecases-title">
+                Real work.
+                <br />
+                <span className="title-accent">Real desktop.</span>
+              </h2>
+              <p>
+                Prompt from your phone. PetAI operates the machine that is
+                already on your desk.
+              </p>
+            </header>
+            <div className="usecase-grid">
+              {USE_CASES.map((u) => (
+                <article key={u.title} className="usecase-card">
+                  <span className="uc-label">{u.label}</span>
+                  <h3>{u.title}</h3>
+                  <p className="usecase-prompt">{u.prompt}</p>
+                  <span className="usecase-result">{u.result}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="flow-band" aria-labelledby="flow-title">
+            <header className="cube-beyond-head">
+              <p className="cube-beyond-kicker">
+                <span className="cube-tag-dot" aria-hidden />
+                How it works
+              </p>
+              <h2 id="flow-title">
+                Install. Link.
+                <br />
+                <span className="title-accent">Prompt.</span>
+              </h2>
+              <p>Three steps from zero to a living device bridge.</p>
+            </header>
+            <div className="flow-steps">
+              {FLOW.map((step) => (
+                <article key={step.n} className="flow-step">
+                  <div className="flow-n">{step.n}</div>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <div className="final-cta-band">
+            <h2>
+              Your computer is already
+              <br />
+              <span className="title-accent">there</span>
+            </h2>
+            <p>
+              Join early access and be first to link a device when slots open.
+            </p>
+            <div className="cta-row">
+              <button type="button" className="cube-btn" onClick={onWaitlist}>
+                Get Early Access
+              </button>
+              <Link href="/login/" className="cube-btn cube-btn-ghost">
+                Developer Login
+              </Link>
+            </div>
+            <div className="platform-row" aria-label="Supported platforms">
+              <span>macOS</span>
+              <span>Windows</span>
+              <span>Linux</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <footer className="cube-footer">
