@@ -33,6 +33,22 @@
   color-scheme: dark;
 }
 
+.cube-starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.cube-burger {
+  display: none;
+}
+
+.cube-mobile-menu {
+  display: none;
+}
+
 .cube-scene {
   position: fixed;
   inset: 0;
@@ -1311,7 +1327,7 @@
 @media (width <= 56.25em) {
   .cube-landing {
     --cube-inset: 1rem;
-    --mobile-cube: min(58vw, 34dvh, 280px);
+    --mobile-cube: min(48vw, 26dvh, 220px);
     --mobile-card-pad: 1.15rem;
     --mobile-nav-h: 3.5rem;
     overflow-x: clip;
@@ -1329,11 +1345,11 @@
     align-items: flex-start;
     justify-content: center;
     padding-top: calc(
-      max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) + 0.35rem
+      max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) + 0.85rem
     );
-    padding-bottom: 48svh;
-    perspective: 900px;
-    perspective-origin: 50% 28%;
+    padding-bottom: 42svh;
+    perspective: 1100px;
+    perspective-origin: 50% 32%;
     overflow: hidden;
     width: 100%;
     max-width: 100%;
@@ -1367,43 +1383,52 @@
     z-index: 0;
   }
 
+  .cube-starfield {
+    opacity: 0.85;
+  }
+
   .cube {
     --s: var(--mobile-cube);
     opacity: 1;
-    filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.45));
-    animation: mobile-cube-float 5.5s ease-in-out infinite;
+    filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.55));
+    /* Clear any leftover inline transform from desktop mode */
+    transform: rotateX(-24deg) rotateY(28deg);
   }
 
-  @keyframes mobile-cube-float {
-    0%,
-    100% {
-      translate: 0 0;
+  .cube.cube--orbit {
+    animation: mobile-cube-orbit 22s linear infinite;
+  }
+
+  @keyframes mobile-cube-orbit {
+    from {
+      transform: rotateX(-24deg) rotateY(0deg);
     }
-    50% {
-      translate: 0 -0.65rem;
+    to {
+      transform: rotateX(-24deg) rotateY(360deg);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .cube {
+    .cube.cube--orbit {
       animation: none;
+      transform: rotateX(-24deg) rotateY(32deg);
     }
   }
 
-  /* Hide dense face mock UIs — show elegant face titles instead */
+  /* Hide dense face mock UIs — abstract glowing faces */
   .cube-face-inner {
     display: none;
   }
 
   .cube-face {
-    border-radius: 0.35rem;
-    border-color: color-mix(in srgb, #39d5f2 28%, transparent);
+    border-radius: 0.45rem;
+    border-color: color-mix(in srgb, #39d5f2 32%, transparent);
     box-shadow:
-      inset 0 0 60px rgba(57, 213, 242, 0.12),
-      0 20px 48px -18px rgba(0, 0, 0, 0.6);
+      inset 0 0 50px rgba(57, 213, 242, 0.14),
+      0 16px 40px -16px rgba(0, 0, 0, 0.55);
     background:
-      radial-gradient(ellipse 80% 70% at 50% 40%, rgba(57, 213, 242, 0.16), transparent 65%),
-      linear-gradient(155deg, #15202a 0%, #0b1218 55%, #080e13 100%);
+      radial-gradient(ellipse 90% 70% at 50% 35%, rgba(57, 213, 242, 0.22), transparent 62%),
+      linear-gradient(155deg, #1a2733 0%, #0c141c 55%, #080e13 100%);
   }
 
   .cube-face-ph {
@@ -1412,35 +1437,34 @@
     left: auto;
     display: grid;
     place-items: center;
-    padding: 1rem;
-    font-size: clamp(1.15rem, 8.5cqw, 2rem);
-    letter-spacing: 0.18em;
-    color: rgba(232, 238, 242, 0.92);
-    text-shadow: 0 0 32px rgba(57, 213, 242, 0.45);
-    background:
-      radial-gradient(circle at 50% 42%, rgba(57, 213, 242, 0.14), transparent 55%);
+    padding: 0.75rem;
+    font-size: clamp(0.72rem, 5.5cqw, 1.05rem);
+    letter-spacing: 0.22em;
+    color: rgba(232, 238, 242, 0.55);
+    text-shadow: 0 0 24px rgba(57, 213, 242, 0.35);
+    background: transparent;
     z-index: 2;
   }
 
   .cube-face-ph::after {
     content: "";
     position: absolute;
-    width: 0.45rem;
-    height: 0.45rem;
+    width: 0.4rem;
+    height: 0.4rem;
     border-radius: 50%;
     background: var(--cube-accent);
-    box-shadow: 0 0 0 4px rgba(57, 213, 242, 0.2), 0 0 18px rgba(57, 213, 242, 0.55);
-    top: 18%;
+    box-shadow: 0 0 0 4px rgba(57, 213, 242, 0.18), 0 0 16px rgba(57, 213, 242, 0.5);
+    top: 16%;
     left: 50%;
     translate: -50% 0;
   }
 
-  /* ── Compact top bar ── */
+  /* ── Compact top bar + burger ── */
   .cube-topnav {
     left: 1rem;
     top: max(0.85rem, env(safe-area-inset-top));
     z-index: 40;
-    max-width: calc(100% - 9rem);
+    max-width: calc(100% - 7.5rem);
   }
 
   .cube-brand {
@@ -1451,25 +1475,115 @@
 
   .cube-top-cta {
     right: 1rem;
-    top: max(0.7rem, env(safe-area-inset-top));
+    top: max(0.65rem, env(safe-area-inset-top));
     left: auto;
     bottom: auto;
-    gap: 0;
+    gap: 0.45rem;
     z-index: 40;
     max-width: none;
+    align-items: center;
   }
 
-  .cube-top-cta .cube-btn-ghost {
+  .cube-top-cta .cube-btn-login-desktop,
+  .cube-top-cta .cube-btn-access {
     display: none;
   }
 
-  .cube-top-cta .cube-btn {
-    min-height: 2.55rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    white-space: nowrap;
+  .cube-burger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.65rem;
+    height: 2.65rem;
+    padding: 0;
+    border-radius: 0.85rem;
+    border: 1px solid color-mix(in srgb, #39d5f2 28%, transparent);
+    background: rgba(14, 22, 28, 0.82);
+    color: var(--cube-fg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+    box-shadow: 0 10px 28px -16px rgba(0, 0, 0, 0.55);
+  }
+
+  .cube-mobile-menu {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+  }
+
+  .cube-mobile-menu-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(4, 7, 10, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+  }
+
+  .cube-mobile-menu-panel {
+    position: absolute;
+    top: max(4.5rem, calc(env(safe-area-inset-top) + 3.5rem));
+    right: 1rem;
+    left: 1rem;
+    max-width: 22rem;
+    margin-left: auto;
+    padding: 1.15rem 1.1rem 1.25rem;
+    border-radius: 1.25rem;
+    border: 1px solid color-mix(in srgb, #39d5f2 20%, transparent);
+    background: linear-gradient(160deg, rgba(18, 28, 36, 0.96), rgba(8, 14, 18, 0.98));
+    box-shadow: 0 24px 56px -20px rgba(0, 0, 0, 0.7);
+  }
+
+  .cube-mobile-menu-title {
+    margin: 0 0 0.85rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cube-accent);
+  }
+
+  .cube-mobile-menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .cube-mobile-menu-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.75rem;
+    color: var(--cube-fg);
+    text-decoration: none;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+  }
+
+  .cube-mobile-menu-nav a:hover,
+  .cube-mobile-menu-nav a:active {
+    background: color-mix(in srgb, #39d5f2 12%, transparent);
+    color: var(--cube-accent);
+  }
+
+  .cube-mobile-menu-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid color-mix(in srgb, #39d5f2 12%, transparent);
+  }
+
+  .cube-mobile-menu-actions .cube-btn {
+    justify-content: center;
+    min-height: 2.75rem;
     border-radius: 999px;
+    font-size: 0.58rem;
   }
 
   .cube-hud,
@@ -1584,7 +1698,7 @@
 
   /* ── Story cards as bottom sheets ── */
   .cube-section {
-    min-height: 100svh;
+    min-height: 88svh;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -1593,14 +1707,14 @@
     padding:
       calc(
         max(4.6rem, env(safe-area-inset-top) + var(--mobile-nav-h)) +
-          var(--mobile-cube) + 1.1rem
+          var(--mobile-cube) + 1.4rem
       )
       0.85rem
       calc(max(0.85rem, env(safe-area-inset-bottom)) + 5.75rem);
   }
 
   .cube-section:first-child {
-    min-height: 100svh;
+    min-height: 92svh;
     align-items: flex-end;
   }
 
@@ -1838,21 +1952,22 @@
 /* Short phones: keep cube visible but slightly smaller */
 @media (width <= 56.25em) and (max-height: 740px) {
   .cube-landing {
-    --mobile-cube: min(48vw, 28dvh, 230px);
+    --mobile-cube: min(42vw, 22dvh, 190px);
   }
 
   .cube-scene {
     padding-top: calc(
-      max(4.2rem, env(safe-area-inset-top) + 3.2rem) + 0.15rem
+      max(4.2rem, env(safe-area-inset-top) + 3.2rem) + 0.5rem
     );
-    padding-bottom: 52svh;
-    perspective-origin: 50% 24%;
+    padding-bottom: 44svh;
+    perspective-origin: 50% 28%;
   }
 
   .cube-section {
+    min-height: 85svh;
     padding-top: calc(
       max(4.2rem, env(safe-area-inset-top) + 3.2rem) + var(--mobile-cube) +
-        0.85rem
+        1rem
     );
     padding-bottom: calc(
       max(0.75rem, env(safe-area-inset-bottom)) + 5.4rem
@@ -1916,11 +2031,9 @@
 }
 
 @media (width <= 380px) {
-  .cube-top-cta .cube-btn {
-    min-height: 2.4rem;
-    padding: 0.45rem 0.85rem;
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
+  .cube-burger {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .cube-brand {
@@ -1928,7 +2041,7 @@
   }
 
   .cube-topnav {
-    max-width: calc(100% - 8.5rem);
+    max-width: calc(100% - 5rem);
   }
 
   .mobile-face-dock-name {

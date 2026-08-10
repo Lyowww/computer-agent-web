@@ -17,12 +17,12 @@ export function LockControls({
   className?: string;
 }) {
   return (
-    <div className={className ?? "grid grid-cols-2 gap-2"}>
+    <div className={className ?? "grid grid-cols-2 gap-3"}>
       <Button
         type="button"
         size="sm"
         variant="outline"
-        className="w-full justify-center"
+        className="w-full min-h-10 justify-center"
         disabled={disabled || !!busy}
         onClick={onLock}
       >
@@ -33,7 +33,7 @@ export function LockControls({
         type="button"
         size="sm"
         variant="outline"
-        className="w-full justify-center"
+        className="w-full min-h-10 justify-center"
         disabled={disabled || !!busy}
         onClick={onUnlock}
       >

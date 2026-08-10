@@ -177,13 +177,14 @@ function DeviceDetailInner() {
                     <CopyValue value={device.id} label="Device ID" />
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link href={`/chat/?deviceId=${device.id}`}>
-                    <Button size="sm">Open Chat</Button>
+                <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap">
+                  <Link href={`/chat/?deviceId=${device.id}`} className="w-full sm:w-auto">
+                    <Button size="sm" className="w-full min-h-10 sm:w-auto">Open Chat</Button>
                   </Link>
                   <Button
                     size="sm"
                     variant="outline"
+                    className="w-full min-h-10 sm:w-auto"
                     loading={regenMutation.isPending}
                     onClick={() => setRegenOpen(true)}
                   >
@@ -193,7 +194,7 @@ function DeviceDetailInner() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-[var(--danger)]"
+                    className="w-full min-h-10 text-[var(--danger)] sm:w-auto"
                     onClick={() => setRevokeOpen(true)}
                   >
                     Revoke

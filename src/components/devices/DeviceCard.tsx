@@ -105,17 +105,17 @@ export function DeviceCard({
         </p>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-5 grid grid-cols-2 gap-3">
         <Link
           href={`/devices/detail/?deviceId=${device.id}`}
           className="col-span-2"
         >
-          <Button size="sm" variant="outline" className="w-full">
+          <Button size="sm" variant="outline" className="w-full min-h-10">
             Device details
           </Button>
         </Link>
         <Link href={`/chat/?deviceId=${device.id}`} className="col-span-2">
-          <Button size="sm" className="w-full">
+          <Button size="sm" className="w-full min-h-10">
             <MessageSquareCode className="h-4 w-4" />
             Open Chat
           </Button>
@@ -124,7 +124,7 @@ export function DeviceCard({
           <Button
             size="sm"
             variant="outline"
-            className="w-full"
+            className="w-full min-h-10"
             disabled={!online || mediaBusy}
             loading={screenshotBusy}
             onClick={() => onScreenshot(device.id)}
@@ -137,7 +137,7 @@ export function DeviceCard({
           <Button
             size="sm"
             variant="outline"
-            className="w-full"
+            className="w-full min-h-10"
             disabled={!online || mediaBusy}
             loading={cameraBusy}
             onClick={() => onCamera(device.id)}
@@ -149,8 +149,9 @@ export function DeviceCard({
       </div>
 
       {onLock && onUnlock ? (
-        <div className="mt-2">
+        <div className="mt-3">
           <LockControls
+            className="grid grid-cols-2 gap-3"
             disabled={!online || mediaBusy}
             busy={lockBusy}
             onLock={() => {
@@ -166,7 +167,7 @@ export function DeviceCard({
       ) : null}
 
       {(showSetup || onRegenerateToken) ? (
-        <div className="mt-4 border-t border-[var(--border)] pt-3">
+        <div className="mt-5 border-t border-[var(--border)] pt-4">
           <button
             type="button"
             onClick={() => setTokenOpen((v) => !v)}
@@ -184,8 +185,8 @@ export function DeviceCard({
             />
           </button>
           {tokenOpen ? (
-            <div className="mt-2 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-              <div className="mb-2 flex flex-wrap gap-1">
+            <div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+              <div className="mb-3 flex flex-wrap gap-2">
                 {device.deviceToken ? (
                   <Button size="sm" variant="outline" onClick={() => void copyToken()}>
                     <Copy className="h-3.5 w-3.5" />

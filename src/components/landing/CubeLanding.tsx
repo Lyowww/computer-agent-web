@@ -8,8 +8,92 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Menu, X } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import "./cube-landing.css";
+
+const MOBILE_MQ = "(max-width: 56.25em)";
+
+function Starfield({ reduced }: { reduced: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const target = useRef({ x: 0, y: 0 });
+  const current = useRef({ x: 0, y: 0 });
+  const starsRef = useRef<
+    { x: number; y: number; z: number; r: number; a: number }[]
+  >([]);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const count = Math.min(140, Math.floor((window.innerWidth * window.innerHeight) / 9000));
+      starsRef.current = Array.from({ length: count }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        z: 0.25 + Math.random() * 0.75,
+        r: 0.5 + Math.random() * 1.6,
+        a: 0.25 + Math.random() * 0.65,
+      }));
+    };
+
+    const onPointer = (e: PointerEvent) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+      target.current = { x: nx, y: ny };
+    };
+
+    const draw = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      current.current.x += (target.current.x - current.current.x) * 0.06;
+      current.current.y += (target.current.y - current.current.y) * 0.06;
+      const px = current.current.x * 28;
+      const py = current.current.y * 20;
+
+      ctx.clearRect(0, 0, w, h);
+      for (const s of starsRef.current) {
+        const x = s.x + px * s.z;
+        const y = s.y + py * s.z;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(57, 213, 242, ${s.a})`;
+        ctx.arc(x, y, s.r * s.z, 0, Math.PI * 2);
+        ctx.fill();
+        if (s.r > 1.2) {
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(232, 238, 242, ${s.a * 0.45})`;
+          ctx.arc(x, y, s.r * s.z * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      if (!reduced) {
+        rafRef.current = window.requestAnimationFrame(draw);
+      }
+    };
+
+    resize();
+    draw();
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointer, { passive: true });
+    return () => {
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointer);
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [reduced]);
+
+  return <canvas ref={canvasRef} className="cube-starfield" aria-hidden />;
+}
 
 const FACE_NAMES = [
   "ORIGIN",
@@ -512,8 +596,39 @@ export function CubeLanding({
   const captionNameRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const [activeFace, setActiveFace] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const rafRef = useRef<number | null>(null);
   const lastFaceRef = useRef(-1);
+  const isMobileRef = useRef(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => {
+      isMobileRef.current = mq.matches;
+      setIsMobile(mq.matches);
+      if (mq.matches && cubeRef.current) {
+        cubeRef.current.style.transform = "";
+      }
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   const applyScroll = useCallback(() => {
     const scrollEl = scrollRef.current;
@@ -533,11 +648,12 @@ export function CubeLanding({
     const x = lerp(r0.x, r1.x, t);
     const y = lerp(r0.y, r1.y, t);
 
-    if (!reduced && cubeRef.current) {
+    // Desktop: scroll-driven cube. Mobile: CSS orbit (always multi-face).
+    if (!reduced && cubeRef.current && !isMobileRef.current) {
       cubeRef.current.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
     }
 
-    const pastCube = window.scrollY > cubeTravel + window.innerHeight * 0.15;
+    const pastCube = window.scrollY > cubeTravel + window.innerHeight * 0.12;
     const scene = cubeRef.current?.parentElement;
     if (scene) {
       scene.style.opacity = pastCube ? "0" : "1";
@@ -627,7 +743,9 @@ export function CubeLanding({
   };
 
   return (
-    <div className="cube-landing">
+    <div className={`cube-landing${isMobile ? " cube-landing--mobile" : ""}`}>
+      <Starfield reduced={reduced} />
+
       <div className="cube-topnav">
         <a href="#s0" className="cube-brand">
           PETAI
@@ -653,13 +771,79 @@ export function CubeLanding({
       </div>
 
       <div className="cube-top-cta">
-        <Link href="/login/" className="cube-btn cube-btn-ghost">
+        <Link href="/login/" className="cube-btn cube-btn-ghost cube-btn-login-desktop">
           Login
         </Link>
-        <button type="button" className="cube-btn" onClick={onWaitlist}>
+        <button
+          type="button"
+          className="cube-btn cube-btn-access"
+          onClick={onWaitlist}
+        >
           Early Access
         </button>
+        <button
+          type="button"
+          className="cube-burger"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </div>
+
+      {menuOpen ? (
+        <div className="cube-mobile-menu" role="dialog" aria-label="Menu">
+          <button
+            type="button"
+            className="cube-mobile-menu-backdrop"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="cube-mobile-menu-panel">
+            <p className="cube-mobile-menu-title">Menu</p>
+            <nav className="cube-mobile-menu-nav">
+              {(
+                [
+                  ["#s0", "Home"],
+                  ["#s1", "Product"],
+                  ["#s2", "Vision"],
+                  ["#s4", "Safety"],
+                  ["#features", "Features"],
+                  ["#s5", "Access"],
+                ] as const
+              ).map(([href, label]) => (
+                <a
+                  key={href}
+                  href={href}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
+            <div className="cube-mobile-menu-actions">
+              <Link
+                href="/login/"
+                className="cube-btn cube-btn-ghost"
+                onClick={() => setMenuOpen(false)}
+              >
+                Login
+              </Link>
+              <button
+                type="button"
+                className="cube-btn"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onWaitlist();
+                }}
+              >
+                Early Access
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="cube-hud" aria-hidden>
         <div id="hud_pct" ref={pctRef}>
@@ -725,7 +909,10 @@ export function CubeLanding({
       </div>
 
       <div className="cube-scene" aria-hidden>
-        <div className="cube" ref={cubeRef}>
+        <div
+          className={`cube${isMobile && !reduced ? " cube--orbit" : ""}`}
+          ref={cubeRef}
+        >
           {FACE_META.map((meta, i) => {
             const FaceView = FACE_VIEWS[i];
             return (

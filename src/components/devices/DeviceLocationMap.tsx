@@ -86,7 +86,7 @@ export function DeviceLocationMap({
 
           {hasCoords ? (
             <div className="overflow-hidden rounded-xl border border-[var(--border)]">
-              <div className="relative aspect-[16/9] w-full bg-[var(--bg-elevated)] sm:aspect-[21/9]">
+              <div className="relative h-[160px] w-full max-h-[28vh] bg-[var(--bg-elevated)] sm:h-[200px] sm:max-h-none lg:h-[240px]">
                 <LocationLeafletMap
                   latitude={location!.latitude!}
                   longitude={location!.longitude!}
