@@ -5,33 +5,14 @@ import { CheckCircle2, Sparkles } from "lucide-react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-
-const WAITLIST_KEY = "petai_waitlist_emails";
-
-function loadEmails(): string[] {
-  try {
-    const raw = localStorage.getItem(WAITLIST_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((e) => typeof e === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveEmail(email: string) {
-  const existing = loadEmails();
-  if (!existing.includes(email.toLowerCase())) {
-    existing.push(email.toLowerCase());
-    localStorage.setItem(WAITLIST_KEY, JSON.stringify(existing));
-  }
-}
+import { joinWaitlist, waitlistErrorMessage } from "@/lib/api/waitlist";
 
 function WaitlistForm({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [alreadyJoined, setAlreadyJoined] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -42,10 +23,15 @@ function WaitlistForm({ onClose }: { onClose: () => void }) {
       return;
     }
     setBusy(true);
-    await new Promise((r) => setTimeout(r, 600));
-    saveEmail(trimmed);
-    setBusy(false);
-    setSuccess(true);
+    try {
+      const result = await joinWaitlist(trimmed, "landing");
+      setAlreadyJoined(result.alreadyJoined);
+      setSuccess(true);
+    } catch (err) {
+      setError(waitlistErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (success) {
@@ -56,10 +42,14 @@ function WaitlistForm({ onClose }: { onClose: () => void }) {
         </div>
         <div>
           <p className="font-display text-xl tracking-tight">
-            You&apos;re on the list!
+            {alreadyJoined
+              ? "You're already on the list!"
+              : "You're on the list!"}
           </p>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            We&apos;ll notify you when slots open.
+            {alreadyJoined
+              ? "We already have your email. We'll notify you when slots open."
+              : "We'll notify you when slots open."}
           </p>
         </div>
         <Button variant="outline" className="w-full" onClick={onClose}>

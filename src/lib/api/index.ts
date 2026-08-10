@@ -5,4 +5,5 @@ export * from "@/lib/api/chat";
 export * from "@/lib/api/voice";
 export * from "@/lib/api/health";
 export * from "@/lib/api/billing";
+export * from "@/lib/api/waitlist";
 export { ApiError, apiFetch, getApiBaseUrl } from "@/lib/api/client";
